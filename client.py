@@ -4,15 +4,30 @@ import msgpack
 HOST = "127.0.0.1"  # The server's hostname or IP address
 PORT = 65432  # The port used by the server
 
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.connect((HOST, PORT))
-while True:
-    client_msg_to_server = msgpack.packb(input('\nSend message to Server: '))
 
-    s.sendall(client_msg_to_server)
-    data_from_server = s.recv(1024)
+def run_client():
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client.connect((HOST, PORT))
+    while True:
+        client_msg_to_server = input('\nSend message to Server: ')
 
-    print(f'Unpack message from Server. \nMessage says: {msgpack.unpackb(data_from_server)}')
+        client.sendall(msgpack.packb(client_msg_to_server))
+        if client_msg_to_server.lower() in ['q', 'quit']:
+            break
 
-    # print(f"Bytes from Server: {data_from_server!r}")
-    # print(f"Message from Server {msgpack.unpackb(data_from_server)}")
+        response = client.recv(1024)
+        if not response or response.lower() in ['q', 'quit']:
+            break
+
+        print(f'\nMessage says: {msgpack.unpackb(response)}')
+
+        answer = input('Do you want to close the connection (y/n):')
+        if answer.lower() == 'y':
+            print('Shutting down connection...')
+            break
+
+    client.shutdown(socket.SHUT_RDWR)
+    client.close()
+    print('Client side connection Closed!')
+
+run_client()
