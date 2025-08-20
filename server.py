@@ -1,14 +1,8 @@
 import socket
-import sys
 import msgpack
 import threading
 
 connections = []
-
-def close_clients(input):
-    if input in ('q', 'quit'):
-        return
-
 
 def handle_clients(client_conn):
     try:
