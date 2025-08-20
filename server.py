@@ -1,48 +1,57 @@
 import socket
-from sys import exception
+import sys
 import msgpack
 import threading
 
-HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
-PORT = 65432  # Port to listen on (non-privileged ports are > 1023)
+connections = []
 
-def handle_clients(client_conn, addr):
+def close_clients(input):
+    if input in ('q', 'quit'):
+        return
+
+
+def handle_clients(client_conn):
     try:
-        data = client_conn.recv(1024)
-        message = msgpack.unpackb(data)
+        while True:
+            data = client_conn.recv(1024)
+            message = msgpack.unpackb(data)
 
-        if message.lower() in ('q', 'quit'):
-            return
+            if message.lower() in ('q', 'quit'):
+                client_conn.close()
+                print(f'\nClient wants to {message}.\nConnection closed!')
+                connections.remove(client_conn)
+                print('Removed client from list.')
+                break
+            else:
+                print(f'\nMessage from client says: {message}')
 
-        print(f'\nMessage from client says: {message}')
-
-        server_msg_to_client = msgpack.packb(input('\nSend message to Client: '))
-        client_conn.sendall(server_msg_to_client)
-
-    except Exception as e:
-        print(f'Error while handling client: {e}')
+            server_msg_to_client = msgpack.packb(input('\nSend message to Client: '))
+            client_conn.sendall(server_msg_to_client)
     finally:
-        return 'close'
+        return
 
 def start_tcp_server():
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_address = ('127.0.0.1', 8000)
+    server_socket.bind(server_address)
+    server_socket.listen(5)
+    _, PORT = server_address
+    print(f"Server running on port: {PORT}")
 
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
-            server.bind((HOST, PORT))
-            server.listen(5)
-            print(f"Server running on port: {PORT}")
+    try:
+        while True:
+            client_conn, client_addr = server_socket.accept()
+            print(f'I got a connection from{client_addr}')
+            print(f'client: {client_conn}')
+            connections.append(client_conn)
 
-            client_conn, addr = server.accept()
-            with client_conn as client:
+            for connection in connections:
+                response = handle_clients(connection)
+                if response == 'close':
+                    print('client shutdown')
+                    break
+    finally:
+        server_socket.close()
 
-                while True:
-                    print(f"Connected by {addr[0]}:{addr[1]}")
-                    print(f'client: {client}')
-                    response = handle_clients(client, addr)
-                    if response == 'close':
-                        print(f"Connection to client ({addr[0]}:{addr[1]}) closed")
-                        print('client shutdown')
-                        break
-
-            print('server shutdown')
 
 start_tcp_server()
