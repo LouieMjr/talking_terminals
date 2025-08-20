@@ -8,26 +8,28 @@ PORT = 8000  # The port used by the server
 def run_client():
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client.connect((HOST, PORT))
-    while True:
-        client_msg_to_server = input('\nSend message to Server: ')
+    try:
+        while True:
+            client_msg_to_server = input('\nSend message to Server: ')
 
-        client.sendall(msgpack.packb(client_msg_to_server))
-        if client_msg_to_server.lower() in ('q', 'quit'):
-            break
+            client.sendall(msgpack.packb(client_msg_to_server))
+            if client_msg_to_server.lower() in ('q', 'quit'):
+                break
 
-        response = client.recv(1024)
-        if not response or response.lower() in ('q', 'quit'):
-            break
+            response = msgpack.unpackb(client.recv(1024))
+            if not response or response.lower() in ('q', 'quit'):
+                print('\nClient side shutting down.\nInitiated from Server!')
+                break
 
-        print(f'\nMessage says: {msgpack.unpackb(response)}')
+            else:
+                print(f'\nMessage says: {response}')
 
-        # answer = input('Do you want to close the connection (y/n):')
-        # if answer.lower() == 'y':
-        #     print('Shutting down connection...')
-        #     break
+    except OSError:
+        pass
 
-    client.shutdown(socket.SHUT_RDWR)
-    client.close()
-    print('Client side connection Closed!')
+    finally:
+        client.shutdown(socket.SHUT_RDWR)
+        client.close()
+        print('Client side connection Closed!')
 
 run_client()
