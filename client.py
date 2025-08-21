@@ -16,13 +16,13 @@ def run_client():
             if client_msg_to_server.lower() in ('q', 'quit'):
                 break
 
-            response = msgpack.unpackb(client.recv(1024))
-            if not response or response.lower() in ('q', 'quit'):
-                print('\nClient side shutting down.\nInitiated from Server!')
+            data = client.recv(1024)
+            if not data:
+                print('Server closed the connection.\nShutting Down!')
                 break
 
-            else:
-                print(f'\nMessage says: {response}')
+            response = msgpack.unpackb(data)
+            print(f'\nMessage says: {response}')
 
     except OSError:
         pass
