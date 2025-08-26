@@ -22,7 +22,7 @@ def run_client():
                 break
 
             response = msgpack.unpackb(data)
-            print(f'\nMessage says: {response}')
+            print(f'\nResponse: {response}')
 
     except OSError:
         pass
