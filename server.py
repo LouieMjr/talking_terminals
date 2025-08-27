@@ -7,13 +7,17 @@ connections = []
 
 async def echo(connection: socket.socket, loop: AbstractEventLoop) -> None:
     while data := await loop.sock_recv(connection, 1024):
-        await loop.sock_sendall(connection, data)
+        print(f'getting any data {data}')
+        for client in connections:
+            if not client == connection:
+                await loop.sock_sendall(client, data)
 
 async def accept_connections(server_socket: socket.socket, loop: AbstractEventLoop):
     while True:
         c_conn, c_address = await loop.sock_accept(server_socket)
         c_conn.setblocking(False)
         print('\nConnection accepted' , c_conn, 'from', c_address)
+        connections.append(c_conn)
         create_task(echo(c_conn, loop))
 
 async def start_tcp_server():
