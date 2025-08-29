@@ -7,7 +7,11 @@ connections = []
 
 async def echo(connection: socket.socket, loop: AbstractEventLoop) -> None:
     while data := await loop.sock_recv(connection, 1024):
-        print(f'getting any data {data}')
+        print(f'Data coming in: {data}')
+        message = msgpack.unpackb(data)
+        disconnected = await handle_client_disconnects(connection, message)
+        if disconnected:
+            break
         for client in connections:
             if not client == connection:
                 await loop.sock_sendall(client, data)
@@ -18,7 +22,19 @@ async def accept_connections(server_socket: socket.socket, loop: AbstractEventLo
         c_conn.setblocking(False)
         print('\nConnection accepted' , c_conn, 'from', c_address)
         connections.append(c_conn)
+        print(f'Connected to {len(connections)} client(s)')
         create_task(echo(c_conn, loop))
+
+async def handle_client_disconnects(client, message):
+    if message == 'q' or message == 'quit':
+        client.close()
+        connections.remove(client)
+        print('\nClient Disconnected')
+        print(f'You are connected to {len(connections)} client(s)')
+        return True
+    return False
+
+
 
 async def start_tcp_server():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
