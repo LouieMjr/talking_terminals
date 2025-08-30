@@ -1,20 +1,27 @@
-import asyncio
-import socket
-import msgpack
-from asyncio import AbstractEventLoop, create_task
+import asyncio, socket, msgpack, logging, signal
+from asyncio import AbstractEventLoop, create_task, wait_for
 
 connections = []
 
 async def echo(connection: socket.socket, loop: AbstractEventLoop) -> None:
-    while data := await loop.sock_recv(connection, 1024):
-        print(f'Data coming in: {data}')
-        message = msgpack.unpackb(data)
-        disconnected = await handle_client_disconnects(connection, message)
-        if disconnected:
-            break
-        for client in connections:
-            if not client == connection:
-                await loop.sock_sendall(client, data)
+    try:
+        while data := await loop.sock_recv(connection, 1024):
+            print(f'Data coming in: {data}')
+            message = msgpack.unpackb(data)
+            if message == 'boom':
+                raise Exception('Unexpected Network Error')
+            disconnected = await handle_client_disconnects(connection, message)
+            if disconnected:
+                break
+            for client in connections:
+                if not client == connection:
+                    await loop.sock_sendall(client, data)
+    except Exception as ex:
+        logging.exception(ex)
+    finally:
+        connection.close()
+        if connection in connections:
+            connections.remove(connection)
 
 async def accept_connections(server_socket: socket.socket, loop: AbstractEventLoop):
     while True:
