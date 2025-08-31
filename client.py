@@ -9,7 +9,6 @@ PORT = 8000  # The port used by the server
 running = True
 selector = selectors.DefaultSelector()
 
-
 def write(client):
     msg_to_clients = input('')
     client.sendall(msgpack.packb(msg_to_clients))
