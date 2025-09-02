@@ -34,29 +34,28 @@ def separate_clients_into_teams(all_clients, client):
         team_odd['Team'].append(client)
         group_clients_into_squads_of_two(team_odd, client)
 
-    print(f'Team Even total: {len(team_even['Team'])}')
-    print(f'Team Odd total: {len(team_odd['Team'])}')
-    print(f'All Clients total: {len(all_clients)} : '
-            f'{len(all_clients) == len(team_even['Team']) +
-            len(team_odd['Team'])}')
-
-
 def create_squad(team, id):
-    team['Squads'][f'squad_{id}'] = []
-    # squad = team['Squads'][f'squad_{id}']
-    # return squad
+    team['Squads'][f'squad_{id+1}'] = []
 
 def group_clients_into_squads_of_two(team, client):
     all_squads = team['Squads']
     id = len(all_squads)
-    print('len of all squads', id)
+    current_squad = all_squads[f'squad_{id}']
 
-    # for squad in all_squads.values():
-    #     if len(squad) < 2:
-    #         squad.append(client)
-    #         print('is this hitting', squad)
-    #     else:
-    #         create_squad(team, id)
+    if client in current_squad:
+        return
+    if len(current_squad) < 2:
+        current_squad.append(client)
+    else:
+        create_squad(team, id)
+        group_clients_into_squads_of_two(team, client)
+
+    # print(f'How many squads in current team {len(all_squads)}\n')
+    # print(f'Team Even total: {len(team_even['Team'])}')
+    # print(f'Team Odd total: {len(team_odd['Team'])}\n')
+    # print(f'All Clients total: {len(connections['All'])} : '
+    #         f'{len(connections['All']) == len(team_even['Team']) +
+    #         len(team_odd['Team'])}')
 
 tasks = []
 
