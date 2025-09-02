@@ -1,4 +1,4 @@
-import asyncio, socket, msgpack, logging, signal
+import asyncio, socket, msgpack, logging, signal, pprint
 from asyncio import AbstractEventLoop, create_task, wait_for
 
 connections = {
@@ -22,33 +22,32 @@ connections = {
 team_even = connections['Team_even']
 team_odd = connections['Team_odd']
 
-def group_all_clients(connections, connection):
-    connections.append(connection)
-    separate_clients_into_teams(connections, connection)
+def group_all_clients(connections, client):
+    connections.append(client)
+    add_client_to_team(connections, client)
 
-def separate_clients_into_teams(all_clients, client):
+def add_client_to_team(all_clients, client):
     if len(all_clients) % 2 == 0:
         team_even['Team'].append(client)
-        group_clients_into_squads_of_two(team_even, client)
+        add_client_to_squad(team_even, client)
     else:
         team_odd['Team'].append(client)
-        group_clients_into_squads_of_two(team_odd, client)
+        add_client_to_squad(team_odd, client)
 
-def create_squad(team, id):
+def create_squad_on_current_team(team, id):
     team['Squads'][f'squad_{id+1}'] = []
 
-def group_clients_into_squads_of_two(team, client):
+# A squad is a group of no more than 2 connections
+def add_client_to_squad(team, client):
     all_squads = team['Squads']
     id = len(all_squads)
     current_squad = all_squads[f'squad_{id}']
 
-    if client in current_squad:
-        return
     if len(current_squad) < 2:
         current_squad.append(client)
     else:
-        create_squad(team, id)
-        group_clients_into_squads_of_two(team, client)
+        create_squad_on_current_team(team, id)
+        add_client_to_squad(team, client)
 
     # print(f'How many squads in current team {len(all_squads)}\n')
     # print(f'Team Even total: {len(team_even['Team'])}')
@@ -85,7 +84,9 @@ async def accept_connections(server_socket: socket.socket, loop: AbstractEventLo
         c_conn.setblocking(False)
         print(f'\nConnection accepted {c_conn} from {c_address}\n')
         group_all_clients(connections['All'], c_conn)
-        print(f'Connected to {len(connections["All"])} client(s)')
+        # print(f'Connected to {len(connections["All"])} client(s)')
+        pprint.pprint(f'current connections:: \n{connections}')
+
         task = create_task(echo(c_conn, loop))
         tasks.append(task)
 
