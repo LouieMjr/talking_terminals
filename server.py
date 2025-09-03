@@ -1,38 +1,43 @@
-import asyncio, socket, msgpack, logging, signal, pprint
+import asyncio, socket, msgpack, logging, signal
+from rich import print
 from asyncio import AbstractEventLoop, create_task, wait_for
 
 connections = {
     'All': [],
     'Team_even': {
-        'Team': [],
+        'All': [],
         'Squads': {
             'squad_1': [],
-
         },
     },
     'Team_odd': {
-        'Team': [],
+        'All': [],
         'Squads': {
             'squad_1': []
-
         },
     },
 }
 
+all_clients = connections['All']
 team_even = connections['Team_even']
 team_odd = connections['Team_odd']
 
-def group_all_clients(connections, client):
-    connections.append(client)
-    add_client_to_team(connections, client)
+# class CustomSocket(socket.socket):
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+#         self.channel = None
+
+def group_all_clients(client):
+    all_clients.append(client)
+    add_client_to_team(all_clients, client)
 
 def add_client_to_team(all_clients, client):
     if len(all_clients) % 2 == 0:
-        team_even['Team'].append(client)
-        add_client_to_squad(team_even, client)
+        team_even['All'].append(client)
+        # add_client_to_squad(team_even, client)
     else:
-        team_odd['Team'].append(client)
-        add_client_to_squad(team_odd, client)
+        team_odd['All'].append(client)
+        # add_client_to_squad(team_odd, client)
 
 def create_squad_on_current_team(team, id):
     team['Squads'][f'squad_{id+1}'] = []
@@ -58,7 +63,19 @@ def add_client_to_squad(team, client):
 
 tasks = []
 
-async def echo(connection: socket.socket, loop: AbstractEventLoop) -> None:
+# def route_message_to_channel(message, client):
+#     match message:
+#         case 'team':
+#             if client in team_even['All']:
+#                 return team_even['All']
+#             else:
+#                 return team_odd['All']
+#         case 'squad':
+#             # if client in team_even
+#             return
+
+
+async def echo(connection: socket.socket,  loop: AbstractEventLoop) -> None:
     try:
         while data := await loop.sock_recv(connection, 1024):
             print(f'Data coming in: {data}')
@@ -68,9 +85,38 @@ async def echo(connection: socket.socket, loop: AbstractEventLoop) -> None:
             disconnected = await handle_client_disconnects(connection, message)
             if disconnected:
                 break
-            for client in connections['All']:
-                if not client == connection:
-                    await loop.sock_sendall(client, data)
+            # clients = route_message_to_correct_clients
+            # print(f'clients {clients}')
+
+
+
+            print(type(all_clients))
+
+            clients = [client for client_obj in all_clients
+                                for client in list(client_obj.keys())
+                                    if not client == connection]
+
+
+            for client in clients:
+                print(f'WHO IS SENDING: {connection}')
+                await loop.sock_sendall(client, data)
+                print(f'WHO JUST RECEIVED: {client}')
+
+            # for client_obj in all_clients:
+            #     print(client_obj)
+            #     for client in list(client_obj.keys()):
+            #         if not client == connection:
+            #             print(f'WHO IS SENDING: {connection}')
+            #             await loop.sock_sendall(client, data)
+            #             print(f'WHO JUST RECEIVED: {client}')
+
+
+            # for client in all_clients:
+            #     if not client == connection:
+            #         print(f'WHO IS SENDING: {connection}')
+            #         await loop.sock_sendall(client, data)
+            #         print(f'WHO JUST RECEIVED: {client}')
+
     except Exception as ex:
         logging.exception(ex)
     finally:
@@ -82,10 +128,8 @@ async def accept_connections(server_socket: socket.socket, loop: AbstractEventLo
     while True:
         c_conn, c_address = await loop.sock_accept(server_socket)
         c_conn.setblocking(False)
-        print(f'\nConnection accepted {c_conn} from {c_address}\n')
-        group_all_clients(connections['All'], c_conn)
-        # print(f'Connected to {len(connections["All"])} client(s)')
-        pprint.pprint(f'current connections:: \n{connections}')
+        print(f'\nConnection accepted:\n{c_conn} from {c_address}\n')
+        group_all_clients({c_conn: {'channel': 'all'}})
 
         task = create_task(echo(c_conn, loop))
         tasks.append(task)
