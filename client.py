@@ -3,18 +3,16 @@ import zmq, zmq.asyncio
 context = zmq.Context()
 
 #  Socket to talk to server
-print("Connecting to hello world server...")
+print("Connecting to server...")
 socket = context.socket(zmq.SUB)
 socket.connect("tcp://localhost:5556")
-socket.setsockopt_string(zmq.SUBSCRIBE, '10001')
+socket.subscribe(b'10001')
+socket.subscribe(b'10002')
 
-#  Do 10 requests, waiting each time for a response
-for request in range(100):
-    print(f"Sending request {request} ...")
-
+while True:
     #  Get the reply.
     message = socket.recv_string()
-    print(f"Received reply {request} [ {message} ]")
+    print(f"Received reply [ {message} ]")
 
 
 
