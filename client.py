@@ -1,20 +1,23 @@
-import zmq, zmq.asyncio
+import zmq, zmq.asyncio, sys
 
 context = zmq.Context()
+
+
 
 #  Socket to talk to server
 print("Connecting to server...")
 socket = context.socket(zmq.SUB)
 socket.connect("tcp://localhost:5556")
-socket.subscribe(b'10001')
-socket.subscribe(b'10002')
+print(sys.argv[1])
+print(sys.argv[1].encode('utf-8'))
+
+socket.subscribe(sys.argv[1].encode('utf-8'))
+# socket.subscribe(b'10002')
 
 while True:
     #  Get the reply.
     message = socket.recv_string()
     print(f"Received reply [ {message} ]")
-
-
 
 
 # import socket
