@@ -1,23 +1,63 @@
-import zmq, zmq.asyncio, sys
+import asyncio
+import sys
+
+import zmq
+import zmq.asyncio
+from rich import print
 
 context = zmq.Context()
 
-
-
 #  Socket to talk to server
 print("Connecting to server...")
-socket = context.socket(zmq.SUB)
-socket.connect("tcp://localhost:5556")
-print(sys.argv[1])
-print(sys.argv[1].encode('utf-8'))
+dealer = context.socket(zmq.REQ)
+dealer.connect("tcp://localhost:5556")
 
-socket.subscribe(sys.argv[1].encode('utf-8'))
-# socket.subscribe(b'10002')
+subscriber = context.socket(zmq.SUB)
+subscriber.connect("tcp://localhost:5557")
+subscriber.subscribe(b"All")
 
-while True:
-    #  Get the reply.
-    message = socket.recv_string()
-    print(f"Received reply [ {message} ]")
+poller = zmq.Poller()
+poller.register(subscriber, zmq.POLLIN)
+poller.register(dealer, zmq.POLLIN)
+poller.register(0, zmq.POLLIN)
+print(type(sys.stdin))
+print(sys.stdin)
+
+
+async def get_input():
+    msg_to_send = sys.stdin.readline()
+    print(f"what msg are we returning: {msg_to_send}")
+    return msg_to_send
+
+
+async def send_msg(msg):
+    dealer.send(msg.encode())
+    print("message sent!")
+
+
+async def main():
+    while True:
+        sockets = dict(poller.poll())
+        print(f"what sockets do we have:\n{sockets}\n")
+        for socket_or_fd, events in sockets.items():
+            if socket_or_fd == 0:
+                msg = await asyncio.create_task(get_input())
+                await asyncio.create_task(send_msg(msg))
+            elif socket_or_fd == subscriber:
+                print(f"\n{socket_or_fd}")
+                print("in elif")
+                message = subscriber.recv().decode()
+                print(type(message))
+                print(f"\nprint broadcasted msg: {message.split(', ')}")
+                for msg in message.split(", "):
+                    print(msg)
+            elif socket_or_fd == dealer:
+                msg = dealer.recv().decode()
+                print(type(msg))
+                print(msg)
+
+
+asyncio.run(main(), debug=True)
 
 
 # import socket
