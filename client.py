@@ -23,40 +23,48 @@ print(type(sys.stdin))
 print(sys.stdin)
 
 
-async def get_input():
+def poll_for_events():
+    sockets = dict(poller.poll())
+    print(f"What does poller have for us:\n{sockets}\n")
+    return sockets
+
+
+def craft_message():
     msg_to_send = sys.stdin.readline()
-    print(f"what msg are we returning: {msg_to_send}")
     return msg_to_send
 
 
 async def send_msg(msg):
     dealer.send(msg.encode())
-    print("message sent!")
+    print("message sent!\n")
 
 
 async def main():
     while True:
-        sockets = dict(poller.poll())
-        print(f"what sockets do we have:\n{sockets}\n")
+        # sockets = asyncio.create_task(poll_for_events())
+        # await sockets
+        print("wait for poller")
+        sockets = poll_for_events()
+
         for socket_or_fd, events in sockets.items():
-            if socket_or_fd == 0:
-                msg = await asyncio.create_task(get_input())
-                await asyncio.create_task(send_msg(msg))
+            if socket_or_fd == 0:  # if we have a msg from stdin
+                message = craft_message()  # use readline to capture that input/msg
+                await asyncio.create_task(send_msg(message))  # send msg to server
+
             elif socket_or_fd == subscriber:
                 print(f"\n{socket_or_fd}")
-                print("in elif")
                 message = subscriber.recv().decode()
-                print(type(message))
                 print(f"\nprint broadcasted msg: {message.split(', ')}")
                 for msg in message.split(", "):
                     print(msg)
             elif socket_or_fd == dealer:
+                print(f"\n{socket_or_fd}")
                 msg = dealer.recv().decode()
                 print(type(msg))
                 print(msg)
 
 
-asyncio.run(main(), debug=True)
+asyncio.run(main())
 
 
 # import socket
