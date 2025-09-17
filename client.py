@@ -14,6 +14,7 @@ dealer.connect("tcp://localhost:5556")
 subscriber = context.socket(zmq.SUB)
 subscriber.connect("tcp://localhost:5557")
 subscriber.subscribe(b"All")
+print(subscriber, "what is this?")
 
 poller = zmq.Poller()
 poller.register(subscriber, zmq.POLLIN)
@@ -34,9 +35,16 @@ def craft_message():
     return msg_to_send
 
 
-async def send_msg(msg):
+def send_msg(msg):
     dealer.send(msg.encode())
     print("message sent!\n")
+
+
+async def response():
+    msg = dealer.recv().decode()
+    print(type(msg))
+    print(msg)
+    return msg
 
 
 async def main():
@@ -49,7 +57,7 @@ async def main():
         for socket_or_fd, events in sockets.items():
             if socket_or_fd == 0:  # if we have a msg from stdin
                 message = craft_message()  # use readline to capture that input/msg
-                await asyncio.create_task(send_msg(message))  # send msg to server
+                send_msg(message)  # send msg to server
 
             elif socket_or_fd == subscriber:
                 print(f"\n{socket_or_fd}")
@@ -59,9 +67,8 @@ async def main():
                     print(msg)
             elif socket_or_fd == dealer:
                 print(f"\n{socket_or_fd}")
-                msg = dealer.recv().decode()
-                print(type(msg))
-                print(msg)
+                res = await response()
+                print(res)
 
 
 asyncio.run(main())
