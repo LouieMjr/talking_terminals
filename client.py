@@ -1,4 +1,3 @@
-import asyncio
 import sys
 
 import zmq
@@ -40,14 +39,14 @@ def send_msg(msg):
     print("message sent!\n")
 
 
-async def response():
+def response():
     msg = dealer.recv().decode()
     print(type(msg))
     print(msg)
     return msg
 
 
-async def main():
+def main():
     while True:
         # sockets = asyncio.create_task(poll_for_events())
         # await sockets
@@ -67,11 +66,11 @@ async def main():
                     print(msg)
             elif socket_or_fd == dealer:
                 print(f"\n{socket_or_fd}")
-                res = await response()
+                res = response()
                 print(res)
 
 
-asyncio.run(main())
+main()
 
 
 # import socket
