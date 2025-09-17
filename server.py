@@ -5,19 +5,54 @@ import zmq.asyncio
 import zmq.utils.monitor
 from rich import print
 
-connections = {
-    "All": [],
-    "Team_even": {
-        "All": [],
-        "Squads": {
-            "squad_1": [],
-        },
-    },
-    "Team_odd": {
-        "All": [],
-        "Squads": {"squad_1": []},
-    },
-}
+context = zmq.Context()
+
+port = "5556"
+port1 = "5557"
+print(sys.argv)
+if len(sys.argv) > 1:
+    port = sys.argv[1]
+    int(port)
+
+
+channels = ["All", "Team1", "Team2", "Squad"]
+channel = channels[0]
+
+
+def start_tcp_server():
+    publisher = context.socket(zmq.PUB)
+    route = context.socket(zmq.PULL)
+    publisher.bind(f"tcp://localhost:{port1}")
+    route.bind(f"tcp://localhost:{port}")
+    print(f"Server running on port: {port}")
+
+    while True:
+        broadcast = route.recv().decode()
+        print(f"type: {type(broadcast)}")
+        # print(f"what is broadcast: {broadcast not in ['', ' ']}")
+        # if broadcast not in [" ", ""]:  # this isnt working. Look into it
+        #     route.send_string("Message received by server!")
+        # else:
+        #     print(f"what is broadcast: {broadcast}")
+        print(f"message from client: {broadcast}")
+        publisher.send(f"{channel}, {broadcast}".encode())
+
+
+start_tcp_server()
+
+# connections = {
+#     "All": [],
+#     "Team_even": {
+#         "All": [],
+#         "Squads": {
+#             "squad_1": [],
+#         },
+#     },
+#     "Team_odd": {
+#         "All": [],
+#         "Squads": {"squad_1": []},
+#     },
+# }
 
 # all_clients = connections['All']
 # team_even = connections['Team_even']
@@ -147,40 +182,6 @@ connections = {
 #             ('Did I hit the Timeout Error--!')
 #             pass
 
-context = zmq.Context()
-
-port = "5556"
-port1 = "5557"
-print(sys.argv)
-if len(sys.argv) > 1:
-    port = sys.argv[1]
-    int(port)
-
-
-channels = ["All", "Team1", "Team2", "Squad"]
-channel = channels[0]
-
-
-def start_tcp_server():
-    publisher = context.socket(zmq.PUB)
-    route = context.socket(zmq.REP)
-    publisher.bind(f"tcp://localhost:{port1}")
-    route.bind(f"tcp://localhost:{port}")
-    print(f"Server running on port: {port}")
-
-    while True:
-        broadcast = route.recv().decode()
-        print(f"type: {type(broadcast)}")
-        print(f"what is broadcast: {broadcast not in ['', ' ']}")
-        if broadcast not in [" ", ""]:
-            route.send_string("Message received by server!")
-        else:
-            print(f"what is broadcast: {broadcast}")
-        print(f"message from client: {broadcast}")
-        publisher.send(f"{channel}, {broadcast}".encode())
-
-
-start_tcp_server()
 # asyncio.run(start_tcp_server(), debug=True)
 
 # topic = random.choice(channels)

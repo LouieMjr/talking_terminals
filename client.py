@@ -7,9 +7,8 @@ from rich import print
 
 context = zmq.Context()
 
-#  Socket to talk to server
 print("Connecting to server...")
-dealer = context.socket(zmq.REQ)
+dealer = context.socket(zmq.PUSH)
 dealer.connect("tcp://localhost:5556")
 
 subscriber = context.socket(zmq.SUB)
