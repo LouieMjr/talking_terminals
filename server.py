@@ -29,11 +29,7 @@ def start_tcp_server():
     while True:
         broadcast = route.recv().decode()
         print(f"type: {type(broadcast)}")
-        # print(f"what is broadcast: {broadcast not in ['', ' ']}")
-        # if broadcast not in [" ", ""]:  # this isnt working. Look into it
-        #     route.send_string("Message received by server!")
-        # else:
-        #     print(f"what is broadcast: {broadcast}")
+
         print(f"message from client: {broadcast}")
         publisher.send(f"{channel}, {broadcast}".encode())
 
