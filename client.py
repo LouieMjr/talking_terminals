@@ -6,8 +6,6 @@ from asyncio.exceptions import CancelledError
 import zmq
 import zmq.asyncio
 
-# from rich import print
-
 context = zmq.asyncio.Context()
 
 print("Connecting to server...")
@@ -29,11 +27,11 @@ poller.register(0, zmq.POLLIN)
 
 async def spin(msg):
     for idx, char in enumerate(itertools.cycle(r"\|/-")):
-        if idx != 0:
-            print("\x1b[1A", end="")
+        # if idx != 0:
+        # print("\x1b[1A", end="")
         status = f"\r{char} {msg} {char}"
         print(status, flush=True, end="")
-        print("\x1b[2B", end="")
+        # print("\x1b[2B", end="")
         try:
             # time.sleep(0.1)
             await asyncio.sleep(0.1)

@@ -1,11 +1,14 @@
+import asyncio
+import itertools
 import sys
+from asyncio.exceptions import CancelledError
 
+import rich
 import zmq
 import zmq.asyncio
 import zmq.utils.monitor
-from rich import print
 
-context = zmq.Context()
+context = zmq.asyncio.Context()
 
 port = "5556"
 port1 = "5557"
@@ -14,27 +17,62 @@ if len(sys.argv) > 1:
     port = sys.argv[1]
     int(port)
 
+publisher = context.socket(zmq.PUB)
+route = context.socket(zmq.PULL)
+publisher.bind(f"tcp://localhost:{port1}")
+route.bind(f"tcp://localhost:{port}")
 
 channels = ["All", "Team1", "Team2", "Squad"]
 channel = channels[0]
 
+i = 0
 
-def start_tcp_server():
-    publisher = context.socket(zmq.PUB)
-    route = context.socket(zmq.PULL)
-    publisher.bind(f"tcp://localhost:{port1}")
-    route.bind(f"tcp://localhost:{port}")
-    print(f"Server running on port: {port}")
+
+async def spin(msg):
+    global i
+    i += 1
+    print(f"hit spin {i} times")
+    for char in itertools.cycle(r"\|/-"):
+        status = f"\r{char} {msg} {char}"
+        print(status, flush=True, end="")
+        try:
+            await asyncio.sleep(0.1)
+        except CancelledError:
+            break
+
+    # move up 4 lines, clear entire line, move down 3 lines
+    print("\033[4A\033[2K\033[3B")
+    # print("\033[5A\033[2K\033[1B\033[2K\033[3B")
+
+    blanks = " " * len(status)
+    print(f"\r{blanks}\r", end="")
+
+
+async def supervisor():
+    spinner = asyncio.create_task(spin("waiting for incoming messages"))
+    result = await receive()
+    spinner.cancel()
+    return result
+
+
+async def receive():
+    msg = await route.recv()
+    msg = msg.decode()
+    return msg
+
+
+async def start_tcp_server():
+    rich.print(f"Server running on port: {port}")
 
     while True:
-        broadcast = route.recv().decode()
-        print(f"type: {type(broadcast)}")
+        broadcast = await supervisor()
+        rich.print(f"\ntype: {type(broadcast)}")
 
-        print(f"message from client: {broadcast}")
+        rich.print(f"message from client: {broadcast}")
         publisher.send(f"{channel}, {broadcast}".encode())
 
 
-start_tcp_server()
+asyncio.run(start_tcp_server())
 
 # connections = {
 #     "All": [],
