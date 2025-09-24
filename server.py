@@ -21,16 +21,13 @@ route = context.socket(zmq.PULL)
 publisher.bind(f"tcp://localhost:{port1}")
 route.bind(f"tcp://localhost:{port}")
 
-channels = ["All", "Team1", "Team2", "Squad"]
+channels = ["All", "Team"]
 channel = channels[0]
-
-i = 0
+# clients = {"data": []}
+# NAME = None
 
 
 async def spin(msg):
-    global i
-    i += 1
-    print(f"hit spin {i} times")
     for char in itertools.cycle(r"\|/-"):
         status = f"\r{char} {msg} {char}"
         print(status, flush=True, end="")
@@ -40,8 +37,8 @@ async def spin(msg):
             break
 
     # move up 4 lines, clear entire line, move down 3 lines
-    print("\033[4A\033[2K\033[3B")
-    # print("\033[5A\033[2K\033[1B\033[2K\033[3B")
+    # print("\033[4A\033[2K\033[3B")
+    # use for loop here to find correct line to erase
 
     blanks = " " * len(status)
     print(f"\r{blanks}\r", end="")
