@@ -7,6 +7,7 @@ import zmq
 import zmq.asyncio
 
 context = zmq.asyncio.Context()
+channels = ["All", "Team"]
 
 print("Connecting to server...")
 dealer = context.socket(zmq.PUSH)
@@ -14,26 +15,23 @@ dealer.connect("tcp://localhost:5556")
 
 subscriber = context.socket(zmq.SUB)
 subscriber.connect("tcp://localhost:5557")
-subscriber.subscribe(b"All")
+subscriber.subscribe(channels[0].encode())
+subscriber.subscribe(channels[1].encode())
 print(subscriber, "what is this?\n")
 
 poller = zmq.asyncio.Poller()
 poller.register(subscriber, zmq.POLLIN)
 poller.register(dealer, zmq.POLLIN)
-poller.register(0, zmq.POLLIN)
+poller.register(0, zmq.POLLIN)  # registering stdin
 # print(type(sys.stdin))
 # print(sys.stdin)
 
 
 async def spin(msg):
     for idx, char in enumerate(itertools.cycle(r"\|/-")):
-        # if idx != 0:
-        # print("\x1b[1A", end="")
         status = f"\r{char} {msg} {char}"
         print(status, flush=True, end="")
-        # print("\x1b[2B", end="")
         try:
-            # time.sleep(0.1)
             await asyncio.sleep(0.1)
         except CancelledError:
             break
@@ -43,9 +41,9 @@ async def spin(msg):
 
 
 async def supervisor():
-    spinner = asyncio.create_task(spin("waiting for poller"))
+    # spinner = asyncio.create_task(spin("waiting for poller"))
     result = await poll_for_events()
-    spinner.cancel()
+    # spinner.cancel()
     return result
 
 
@@ -100,69 +98,3 @@ async def main():
 
 
 asyncio.run(main())
-
-
-# import socket
-# import zmq, zmq.asyncio
-# import msgpack
-# import selectors
-# import sys
-# import io
-#
-# HOST = "127.0.0.1"
-# PORT = 8000
-# ctx = zmq.asyncio.Context()
-# running = True
-# selector = selectors.DefaultSelector()
-#
-# def write(client):
-#     msg_to_clients = input('')
-#     client.sendall(msgpack.packb(msg_to_clients))
-#
-# def read(client):
-#     data = client.recv(1024)
-#     if not data:
-#         print(f'Data {data}. Server closed the connection.\nShutting Down!')
-#         return False
-#     else:
-#         response = msgpack.unpackb(data)
-#         print(f'From Chat: {response}')
-#         return True
-#
-# def disconnect(client):
-#     client.close()
-#     print('Client side connection Closed!')
-#
-# def run_client():
-#     global running
-#     # client = ctx.socket(zmq.SUB)
-#     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-#     client.connect((HOST, PORT))
-#     selector.register(client, selectors.EVENT_READ)
-#     selector.register(sys.stdin, selectors.EVENT_READ)
-#     try:
-#         while running:
-#
-#             events = selector.select()
-#
-#             for event, _ in events:
-#
-#                 print(f'event: {event}')
-#                 if isinstance(event.fileobj, io.TextIOWrapper):
-#
-#                     print(f'event: {event}\nFileObject: {event.fileobj}')
-#                     write(client)
-#                 else:
-#                     if not read(client):
-#                         running = False
-#                         break
-#                     else:
-#                         read(client)
-#
-#     except KeyboardInterrupt:
-#         client.sendall(msgpack.packb('quit'))
-#         print('sent quit to server')
-#     finally:
-#         disconnect(client)
-#
-# run_client()
