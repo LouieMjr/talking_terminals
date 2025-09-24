@@ -84,6 +84,9 @@ async def response():
 
 
 async def main():
+    USERNAME = input("What's your username? ").title()
+    # send_msg(f"UserName: {client_name}")
+
     while True:
         sockets = dict(await supervisor())
         # sockets = asyncio.create_task(poll_for_events())
