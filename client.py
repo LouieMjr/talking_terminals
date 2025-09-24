@@ -41,9 +41,7 @@ async def spin(msg):
 
 
 async def supervisor():
-    # spinner = asyncio.create_task(spin("waiting for poller"))
     result = await poll_for_events()
-    # spinner.cancel()
     return result
 
 
@@ -52,14 +50,28 @@ async def poll_for_events():
     return sockets
 
 
-def craft_message():
-    msg_to_send = sys.stdin.readline()
-    return msg_to_send
+def is_input_tab(input):
+    tab = "\t"
+
+    has_letters = any(char.isalpha() for char in input)
+    has_numbers = any(char.isdigit() for char in input)
+
+    if tab in input and not (has_letters or has_numbers):
+        return True
+    else:
+        return False
+
+
+def read_input():
+    input = sys.stdin.readline()
+    if is_input_tab(input):
+        return "\t"
+    else:
+        return input
 
 
 def send_msg(msg):
     dealer.send(msg.encode())
-    print("message sent!\n")
 
 
 async def response():
@@ -79,18 +91,16 @@ async def main():
         # sockets = dict(sockets)
 
         for socket_or_fd, events in sockets.items():
-            if socket_or_fd == 0:  # if we have a msg from stdin
-                message = craft_message()  # use readline to capture that input/msg
-                send_msg(message)  # send msg to server
-
+            if socket_or_fd == 0:  # if we have an input from stdin
+                message = read_input()  # use readline to capture that input/msg
+                if message == "\t":
+                    send_msg("\t")
+                else:
+                    send_msg(f"From {USERNAME}: {message}")  # send msg to server
             elif socket_or_fd == subscriber:
-                print(f"\n{socket_or_fd}")
                 message = await subscriber.recv()
-                print(f"IN SUB. What is message before decode: {message}")
                 message = message.decode()
-                print(f"\nprint broadcasted msg: {message.split(', ')}")
-                for msg in message.split(", "):
-                    print(msg)
+                print(f"{message}")
             elif socket_or_fd == dealer:
                 print(f"\n{socket_or_fd}")
                 res = response()
