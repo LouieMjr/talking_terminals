@@ -63,17 +63,38 @@ def change_channels():
 
 def read_input():
     input = sys.stdin.readline()
+    erase_input_line()
     if is_input_tab(input):
         change_channels()
         subscriber.subscribe(channel)
         print(f"{channel} channel activated.")
         return None
     else:
-        return input
+        valid = validate_input(input)
+        if not valid:
+            return False
+        else:
+            return input
 
 
-def send_msg(msg):
-    dealer.send(msg.encode())
+def send_join_signal(name):
+    dealer.send(f"{channel}:username:{name}".encode())
+
+
+def deliver_msg(msg_data):
+    username, message = msg_data
+    dealer.send(f"{channel}:{username}:{message}".encode())
+
+
+def erase_input_line():
+    print("\033[1A\033[2K", end="\r")
+
+
+def validate_input(input):
+    if input == "\n":
+        print("\033[1A", end="\r")
+        return False
+    return True
 
 
 async def response():
