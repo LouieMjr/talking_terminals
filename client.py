@@ -4,9 +4,15 @@ from asyncio.exceptions import CancelledError
 
 import zmq
 import zmq.asyncio
+from rich.console import Console
+
+from client_storage import channels
 
 context = zmq.asyncio.Context()
-channels = ["All", "Team"]
+console = Console()
+channel_keys = list(channels)
+channel = channel_keys[0]
+
 
 print("Connecting to server...")
 dealer = context.socket(zmq.PUSH)
@@ -14,9 +20,8 @@ dealer.connect("tcp://localhost:5556")
 
 subscriber = context.socket(zmq.SUB)
 subscriber.connect("tcp://localhost:5557")
-subscriber.subscribe(channels[0].encode())
-subscriber.subscribe(channels[1].encode())
-print(subscriber, "what is this?\n")
+subscriber.subscribe(channel.encode())
+# subscriber.subscribe(channels[1].encode())
 
 poller = zmq.asyncio.Poller()
 poller.register(subscriber, zmq.POLLIN)
