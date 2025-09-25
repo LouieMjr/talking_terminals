@@ -106,6 +106,26 @@ async def response():
     return msg
 
 
+def display_who_joined_chat(msg_data, username):
+    _, message = msg_data
+    if username in message:
+        message = "You joined the chat."
+
+    console.print(f"[bold red]{message}")
+
+
+def display_client_message(msg_data, username):
+    _, user, message = msg_data
+    if username in user:
+        user = "Me"
+    global channel
+    if channel == "All":
+        console.print(f"[yellow][{user}]: {message}", end="")
+    else:
+        console.print(f"[blue][{user}]: {message}", end="")
+    # rich.print(f"[{user}]: {message}", end="")
+
+
 async def main():
     USERNAME = input("What's your username? ").title()
     # send_msg(f"UserName: {client_name}")
@@ -119,14 +139,16 @@ async def main():
         for socket_or_fd, events in sockets.items():
             if socket_or_fd == 0:  # if we have an input from stdin
                 message = read_input()  # use readline to capture that input/msg
-                if message == "\t":
-                    send_msg("\t")
-                else:
-                    send_msg(f"From {USERNAME}: {message}")  # send msg to server
+                if message is not None and message is not False:
+                    deliver_msg([USERNAME, message])
             elif socket_or_fd == subscriber:
-                message = await subscriber.recv()
-                message = message.decode()
-                print(f"{message}")
+                msg_data = await subscriber.recv()
+                msg_data = msg_data.decode().split(":")
+
+                if len(msg_data) <= 2:
+                    display_who_joined_chat(msg_data, USERNAME)
+                else:
+                    display_client_message(msg_data, USERNAME)
             elif socket_or_fd == dealer:
                 print(f"\n{socket_or_fd}")
                 res = response()
