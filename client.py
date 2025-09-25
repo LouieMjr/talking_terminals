@@ -53,10 +53,21 @@ def is_input_tab(input):
         return False
 
 
+def change_channels():
+    global channel
+    if channel == channel_keys[0]:
+        channel = channel_keys[1]
+    else:
+        channel = channel_keys[0]
+
+
 def read_input():
     input = sys.stdin.readline()
     if is_input_tab(input):
-        return "\t"
+        change_channels()
+        subscriber.subscribe(channel)
+        print(f"{channel} channel activated.")
+        return None
     else:
         return input
 
