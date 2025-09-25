@@ -1,5 +1,4 @@
 import asyncio
-import itertools
 import sys
 from asyncio.exceptions import CancelledError
 
@@ -25,19 +24,6 @@ poller.register(dealer, zmq.POLLIN)
 poller.register(0, zmq.POLLIN)  # registering stdin
 # print(type(sys.stdin))
 # print(sys.stdin)
-
-
-async def spin(msg):
-    for idx, char in enumerate(itertools.cycle(r"\|/-")):
-        status = f"\r{char} {msg} {char}"
-        print(status, flush=True, end="")
-        try:
-            await asyncio.sleep(0.1)
-        except CancelledError:
-            break
-
-    blanks = " " * len(status)
-    print(f"\r{blanks}\r", end="")
 
 
 async def supervisor():
