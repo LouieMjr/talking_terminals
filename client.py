@@ -128,13 +128,14 @@ def display_client_message(msg_data, username):
 
 async def main():
     USERNAME = input("What's your username? ").title()
-    # send_msg(f"UserName: {client_name}")
+    send_join_signal(USERNAME)
 
     while True:
-        sockets = dict(await supervisor())
-        # sockets = asyncio.create_task(poll_for_events())
-        # sockets = await sockets
-        # sockets = dict(sockets)
+        try:
+            sockets = dict(await supervisor())
+        except CancelledError:
+            print("Pressed CTRL C")
+            break
 
         for socket_or_fd, events in sockets.items():
             if socket_or_fd == 0:  # if we have an input from stdin
