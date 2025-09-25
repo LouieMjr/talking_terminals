@@ -21,11 +21,6 @@ route = context.socket(zmq.PULL)
 publisher.bind(f"tcp://localhost:{port1}")
 route.bind(f"tcp://localhost:{port}")
 
-channels = ["All", "Team"]
-channel = channels[0]
-# clients = {"data": []}
-# NAME = None
-
 
 async def spin(msg):
     for char in itertools.cycle(r"\|/-"):
@@ -42,6 +37,12 @@ async def spin(msg):
 
     blanks = " " * len(status)
     print(f"\r{blanks}\r", end="")
+
+
+def parse(message):
+    data = message.split(":")
+    print(data)
+    return data
 
 
 async def supervisor():
