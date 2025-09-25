@@ -55,9 +55,24 @@ async def supervisor():
 async def receive():
     msg = await route.recv()
     msg = msg.decode()
-    # msg = check_for_client_name(msg)
-    return msg
+    return parse(msg)
 
+
+async def start_tcp_server():
+    rich.print(f"Server running on port: {port}")
+
+    while True:
+        msg_data = await supervisor()
+        if "username" in msg_data:
+            channel, _, name = msg_data
+            publisher.send(f"{channel}:{name} has joined.".encode())
+
+        else:
+            channel, client, message = msg_data
+            publisher.send(f"{channel}:{client}:{message}".encode())
+
+
+asyncio.run(start_tcp_server())
 
 # def check_for_client_name(message):
 #     msg = message.split(":")
@@ -72,32 +87,3 @@ async def receive():
 #         return name
 #     else:
 #         return message
-
-
-def check_for_channel_change_signal(signal):
-    print("printing signal", signal)
-    if signal == "\t":
-        global channel
-        if channel == channels[0]:
-            channel = channels[1]
-        else:
-            channel = channels[0]
-
-        return f"{channel} channel activated.".encode()
-    return False
-
-
-async def start_tcp_server():
-    rich.print(f"Server running on port: {port}")
-
-    while True:
-        broadcast = await supervisor()
-        channel_switch = check_for_channel_change_signal(broadcast)
-        if channel_switch:
-            publisher.send(channel_switch)
-        else:
-            rich.print(f"Clients message:\n{broadcast}")
-            publisher.send(f"{channel} ch - {broadcast}".encode())
-
-
-asyncio.run(start_tcp_server())
