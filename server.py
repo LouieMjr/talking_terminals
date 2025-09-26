@@ -7,6 +7,8 @@ import rich
 import zmq
 import zmq.asyncio
 
+from client_data_storage import channel_data
+
 context = zmq.asyncio.Context()
 
 port = "5556"
@@ -17,7 +19,7 @@ if len(sys.argv) > 1:
     int(port)
 
 publisher = context.socket(zmq.PUB)
-route = context.socket(zmq.PULL)
+route = context.socket(zmq.REP)
 publisher.bind(f"tcp://localhost:{port1}")
 route.bind(f"tcp://localhost:{port}")
 
@@ -37,6 +39,22 @@ async def spin(msg):
 
     blanks = " " * len(status)
     print(f"\r{blanks}\r", end="")
+
+
+def send_team_status(data):
+    route.send(data.encode())
+
+
+def route_clients_to_teams(client):
+    channel_data["All"].append(client)
+    if channel_data["total_connected"] % 2 == 0:
+        channel_data["Team1"].append(client)
+        send_team_status("Team1")
+
+    else:
+        channel_data["Team2"].append(client)
+        send_team_status("Team2")
+    channel_data["total_connected"] += 1
 
 
 def parse(message):
@@ -63,27 +81,20 @@ async def start_tcp_server():
 
     while True:
         msg_data = await supervisor()
-        if "username" in msg_data:
+        # print(f"any zero in here: {msg_data}")
+        if "0" in msg_data:
+            print("printing 0")
+        elif "username" in msg_data:
             channel, _, name = msg_data
+            route_clients_to_teams(name)
+            rich.print(channel_data)
             publisher.send(f"{channel}:{name} has joined.".encode())
 
         else:
             channel, client, message = msg_data
+            route.send(b"")
+            # print(f"Before publisher sends back\nWhat channel: {channel}")
             publisher.send(f"{channel}:{client}:{message}".encode())
 
 
 asyncio.run(start_tcp_server())
-
-# def check_for_client_name(message):
-#     msg = message.split(":")
-#     msg[0] = msg[0].lower()
-#     if "username" in msg:
-#         clients_connected = clients["data"]
-#         name = msg[1].title().strip()
-#         clients["data"].append({"username": name, "id": len(clients_connected) + 1})
-#         print(clients)
-#         global NAME
-#         NAME = name
-#         return name
-#     else:
-#         return message
