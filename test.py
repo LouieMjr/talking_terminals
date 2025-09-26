@@ -1,5 +1,0 @@
-print("Spinner line")
-print("\x1b[1B", end="")
-print("Input line")
-print("\x1b[2A", end="")
-print("\rUPDATED", end="")
