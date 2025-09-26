@@ -53,10 +53,12 @@ def is_input_tab(input):
 
 def change_channels():
     global channel
-    if channel == channel_keys[0]:
-        channel = channel_keys[1]
+    if channel == channels[0]:
+        channel = channels[1]
+        console.print(f"[bold blue]{channel} channel activated.")
     else:
-        channel = channel_keys[0]
+        channel = channels[0]
+        console.print(f"[bold yellow]{channel} channel activated.")
 
 
 def read_input():
@@ -64,8 +66,6 @@ def read_input():
     erase_input_line()
     if is_input_tab(input):
         change_channels()
-        subscriber.subscribe(channel)
-        print(f"{channel} channel activated.")
         return None
     else:
         valid = validate_input(input)
@@ -81,6 +81,7 @@ def send_join_signal(name):
 
 def deliver_msg(msg_data):
     username, message = msg_data
+    # print(f"what channel is this on: {channel}")
     dealer.send(f"{channel}:{username}:{message}".encode())
 
 
@@ -95,13 +96,18 @@ def validate_input(input):
     return True
 
 
+def add_channel_and_subscribe(channel):
+    channels.append(channel)
+    print(f"what are my channels: {channels}")
+    subscriber.subscribe(channel.encode())
+
+
 async def response():
-    msg = await dealer.recv()
-    print(msg)
-    msg = msg.decode()
-    print(type(msg))
-    print(msg)
-    return msg
+    response = await dealer.recv()
+    response = response.decode()
+    if response != "":
+        add_channel_and_subscribe(response)
+        return response
 
 
 def display_who_joined_chat(msg_data, username):
