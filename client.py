@@ -6,16 +6,14 @@ import zmq
 import zmq.asyncio
 from rich.console import Console
 
-from client_storage import channels
-
 context = zmq.asyncio.Context()
 console = Console()
-channel_keys = list(channels)
-channel = channel_keys[0]
+channels = ["All"]
+channel = channels[0]
 
 
 print("Connecting to server...")
-dealer = context.socket(zmq.PUSH)
+dealer = context.socket(zmq.REQ)
 dealer.connect("tcp://localhost:5556")
 
 subscriber = context.socket(zmq.SUB)
