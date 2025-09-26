@@ -63,7 +63,8 @@ def change_channels():
 
 def read_input():
     input = sys.stdin.readline()
-    erase_input_line()
+    if input != "\n":
+        erase_input_line()
     if is_input_tab(input):
         change_channels()
         return None
@@ -119,25 +120,29 @@ def display_who_joined_chat(msg_data, username):
 
 
 def display_client_message(msg_data, username):
-    _, user, message = msg_data
+    from_channel, user, message = msg_data
     if username in user:
         user = "Me"
     global channel
-    if channel == "All":
-        console.print(f"[yellow][{user}]: {message}", end="")
+    if channel == "All" and from_channel == "All":
+        console.print(f"[yellow][All][{user}]: {message}", end="")
     else:
-        console.print(f"[blue][{user}]: {message}", end="")
-    # rich.print(f"[{user}]: {message}", end="")
+        console.print(f"[blue][Team][{user}]: {message}", end="")
 
 
 async def main():
+    # try:
     USERNAME = input("What's your username? ").title()
     send_join_signal(USERNAME)
+    # except KeyboardInterrupt:
+    # print("\nKill")
 
     while True:
         try:
             sockets = dict(await supervisor())
         except CancelledError:
+            # this causes a future exception was never retreieved
+            # dealer.send("0".encode())
             print("Pressed CTRL C")
             break
 
@@ -146,7 +151,7 @@ async def main():
                 message = read_input()  # use readline to capture that input/msg
                 if message is not None and message is not False:
                     deliver_msg([USERNAME, message])
-            elif socket_or_fd == subscriber:
+            if socket_or_fd == subscriber:
                 msg_data = await subscriber.recv()
                 msg_data = msg_data.decode().split(":")
 
@@ -154,10 +159,10 @@ async def main():
                     display_who_joined_chat(msg_data, USERNAME)
                 else:
                     display_client_message(msg_data, USERNAME)
-            elif socket_or_fd == dealer:
-                print(f"\n{socket_or_fd}")
-                res = response()
-                print(res)
+            if socket_or_fd == dealer:
+                await response()
+                # if res is not None:
+                # print("who are you", res)
 
 
 asyncio.run(main())
