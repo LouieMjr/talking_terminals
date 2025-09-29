@@ -41,7 +41,7 @@ async def spin(msg):
     print(f"\r{blanks}\r", end="")
 
 
-def send_team_status(data):
+def send_channel_status(data):
     route.send(data.encode())
 
 
@@ -101,9 +101,12 @@ async def start_tcp_server():
 
     while True:
         msg_data = await supervisor()
-        # print(f"any zero in here: {msg_data}")
         if "0" in msg_data:
-            print("printing 0")
+            _, name = msg_data
+            if name in channel_data["All"]:
+                channel_data["All"].remove(name)
+                print(channel_data)
+            route.send(b"")
         elif "username" in msg_data:
             channel, _, name = msg_data
             route_clients_to_teams(name)
