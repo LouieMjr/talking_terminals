@@ -125,10 +125,16 @@ def display_client_message(msg_data, username):
     if username in user:
         user = "Me"
     global channel
-    if channel == "All" and from_channel == "All":
+    if from_channel == "All":
         console.print(f"[yellow][All][{user}]: {message}", end="")
-    else:
+    elif (
+        "Team" in from_channel
+        and from_channel in channels
+        and "Squad" not in from_channel
+    ):
         console.print(f"[blue][Team][{user}]: {message}", end="")
+    elif "Squad" in from_channel and from_channel in channels:
+        console.print(f"[green][Squad][{user}]: {message}", end="")
 
 
 async def main():
