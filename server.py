@@ -7,8 +7,6 @@ import rich
 import zmq
 import zmq.asyncio
 
-from client_data_storage import channel_data
-
 context = zmq.asyncio.Context()
 
 port = "5556"
@@ -22,6 +20,8 @@ publisher = context.socket(zmq.PUB)
 route = context.socket(zmq.REP)
 publisher.bind(f"tcp://localhost:{port1}")
 route.bind(f"tcp://localhost:{port}")
+
+channel_data = {"All": [], "Team1": [], "Team2": [], "total_connected": 0}
 
 
 async def spin(msg):
