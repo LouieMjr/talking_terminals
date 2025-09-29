@@ -34,8 +34,8 @@ async def spin(msg):
             break
 
     # move up 4 lines, clear entire line, move down 3 lines
-    # print("\033[4A\033[2K\033[3B")
-    # use for loop here to find correct line to erase
+    print("\033[4A\033[2K\033[3B")
+    # use for loop here to find correct line to clear
 
     blanks = " " * len(status)
     print(f"\r{blanks}\r", end="")
@@ -45,15 +45,35 @@ def send_team_status(data):
     route.send(data.encode())
 
 
+# def completely_remove_client_from_chat(object):
+
+
+def route_clients_to_squads(client, team):
+    number = channel_data["total_connected"]
+    id = len(team)
+
+    if number % 4 == 0:
+        team.append({f"Squad{id}": []})
+        channel_data["Team2"].append({f"Squad{id}": []})
+    else:
+        if len(team) != 0:
+            id -= 1
+
+    team[id][f"Squad{id}"].append(client)
+    return f"Squad{id}"
+
+
 def route_clients_to_teams(client):
     channel_data["All"].append(client)
     if channel_data["total_connected"] % 2 == 0:
-        channel_data["Team1"].append(client)
-        send_team_status("Team1")
+        squad_ch = route_clients_to_squads(client, channel_data["Team1"])
+        channels = f"Team1 Team1{squad_ch}"
+        send_channel_status(channels)
 
     else:
-        channel_data["Team2"].append(client)
-        send_team_status("Team2")
+        squad_ch = route_clients_to_squads(client, channel_data["Team2"])
+        channels = f"Team2 Team2{squad_ch}"
+        send_channel_status(channels)
     channel_data["total_connected"] += 1
 
 
