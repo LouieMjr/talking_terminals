@@ -139,17 +139,14 @@ def display_client_message(msg_data, username):
 
 async def main():
     # try:
-    USERNAME = input("What's your username? ").title()
+    USERNAME = input("What should people call you? ").title()
     send_join_signal(USERNAME)
-    # except KeyboardInterrupt:
-    # print("\nKill")
 
     while True:
         try:
             sockets = dict(await supervisor())
         except CancelledError:
-            # this causes a future exception was never retreieved
-            # dealer.send("0".encode())
+            await dealer.send(f"0:{USERNAME}".encode())
             print("Pressed CTRL C")
             break
 
@@ -169,7 +166,6 @@ async def main():
             if socket_or_fd == dealer:
                 await response()
                 # if res is not None:
-                # print("who are you", res)
 
 
 asyncio.run(main())
