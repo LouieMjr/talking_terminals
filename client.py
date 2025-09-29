@@ -19,14 +19,11 @@ dealer.connect("tcp://localhost:5556")
 subscriber = context.socket(zmq.SUB)
 subscriber.connect("tcp://localhost:5557")
 subscriber.subscribe(channel.encode())
-# subscriber.subscribe(channels[1].encode())
 
 poller = zmq.asyncio.Poller()
 poller.register(subscriber, zmq.POLLIN)
 poller.register(dealer, zmq.POLLIN)
 poller.register(0, zmq.POLLIN)  # registering stdin
-# print(type(sys.stdin))
-# print(sys.stdin)
 
 
 async def supervisor():
@@ -55,10 +52,13 @@ def change_channels():
     global channel
     if channel == channels[0]:
         channel = channels[1]
-        console.print(f"[bold blue]{channel} channel activated.")
+        console.print(f"[bold blue]{channel} channel active.")
+    elif channel == channels[1]:
+        channel = channels[2]
+        console.print(f"[bold green]{channel[5:len(channel)-1]} channel active.")
     else:
         channel = channels[0]
-        console.print(f"[bold yellow]{channel} channel activated.")
+        console.print(f"[bold yellow]{channel} channel active.")
 
 
 def read_input():
