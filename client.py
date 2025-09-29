@@ -97,18 +97,19 @@ def validate_input(input):
     return True
 
 
-def add_channel_and_subscribe(channel):
-    channels.append(channel)
-    print(f"what are my channels: {channels}")
-    subscriber.subscribe(channel.encode())
+def add_channel_and_subscribe(new_channels):
+    for channel in new_channels:
+        channels.append(channel)
+        subscriber.subscribe(channel.encode())
 
 
 async def response():
     response = await dealer.recv()
     response = response.decode()
     if response != "":
-        add_channel_and_subscribe(response)
-        return response
+        new_channels = response.split(" ")
+        add_channel_and_subscribe(new_channels)
+        # return new_channels
 
 
 def display_who_joined_chat(msg_data, username):
