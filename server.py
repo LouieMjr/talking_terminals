@@ -65,17 +65,19 @@ def route_clients_to_squads(client, team):
 
 
 def route_clients_to_teams(client):
-    channel_data["All"].append(client)
-    if channel_data["total_connected"] % 2 == 0:
+    total_clients = channel_data["total_connected"]
+    channel_data["All"].append({str(total_clients): client})
+
+    if total_clients % 2 == 0:
         squad_ch = route_clients_to_squads(client, channel_data["Team1"])
         channels = f"Team1 Team1{squad_ch}"
-        send_channel_status(channels)
 
     else:
         squad_ch = route_clients_to_squads(client, channel_data["Team2"])
         channels = f"Team2 Team2{squad_ch}"
-        send_channel_status(channels)
+
     channel_data["total_connected"] += 1
+    send_channel_subscriptions(channels)
 
 
 def parse(message):
