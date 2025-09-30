@@ -110,7 +110,7 @@ async def start_tcp_server():
 
     while True:
         msg_data = await supervisor()
-        if "0" in msg_data:
+        if "quit" in msg_data:
             _, name = msg_data
             if name in channel_data["All"]:
                 channel_data["All"].remove(name)
@@ -120,10 +120,14 @@ async def start_tcp_server():
             client_joined_chat(msg_data)
 
         else:
-            channel, client, message = msg_data
-            route.send(b"")
-            # print(f"Before publisher sends back\nWhat channel: {channel}")
-            publisher.send(f"{channel}:{client}:{message}".encode())
+            if "private_message" == msg_data[0]:
+                private_message_list = msgpack.packb(channel_data["All"])
+                route.send(private_message_list)
+            else:
+                channel, client, message = msg_data
+                route.send(msgpack.packb(""))
+                message = f"{channel}:{client}:{message}".encode()
+                publisher.send(message)
 
 
 asyncio.run(start_tcp_server())
