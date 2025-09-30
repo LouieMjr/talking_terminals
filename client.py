@@ -2,6 +2,8 @@ import asyncio
 import sys
 from asyncio.exceptions import CancelledError
 
+import msgpack
+import rich
 import zmq
 import zmq.asyncio
 from rich.console import Console
@@ -77,13 +79,13 @@ def read_input():
 
 
 def send_join_signal(name):
-    dealer.send(f"{channel}:username:{name}".encode())
+    dealer.send(msgpack.packb(f"{channel}:username:{name}"))
 
 
 def deliver_msg(msg_data):
     username, message = msg_data
     # print(f"what channel is this on: {channel}")
-    dealer.send(f"{channel}:{username}:{message}".encode())
+    dealer.send(msgpack.packb(f"{channel}:{username}:{message}"))
 
 
 def erase_input_line():
@@ -105,7 +107,9 @@ def add_channel_and_subscribe(new_channels):
 
 async def response():
     response = await dealer.recv()
-    response = response.decode()
+    response = msgpack.unpackb(response)
+    # if isinstance(response, bytes):
+    # response = response.decode()
     if response != "":
         new_channels = response.split(" ")
         add_channel_and_subscribe(new_channels)
@@ -138,7 +142,6 @@ def display_client_message(msg_data, username):
 
 
 async def main():
-    # try:
     USERNAME = input("What should people call you? ").title()
     send_join_signal(USERNAME)
 
@@ -146,7 +149,7 @@ async def main():
         try:
             sockets = dict(await supervisor())
         except CancelledError:
-            await dealer.send(f"0:{USERNAME}".encode())
+            await dealer.send(msgpack.packb(f"quit:{USERNAME}"))
             print("Pressed CTRL C")
             break
 
@@ -164,8 +167,9 @@ async def main():
                 else:
                     display_client_message(msg_data, USERNAME)
             if socket_or_fd == dealer:
-                await response()
-                # if res is not None:
+                res = await response()
+                if res is not None:
+                    rich.print(res)
 
 
 asyncio.run(main())

@@ -3,6 +3,7 @@ import itertools
 import sys
 from asyncio.exceptions import CancelledError
 
+import msgpack
 import rich
 import zmq
 import zmq.asyncio
@@ -34,15 +35,15 @@ async def spin(msg):
             break
 
     # move up 4 lines, clear entire line, move down 3 lines
-    print("\033[4A\033[2K\033[3B")
+    # print("\033[4A\033[2K\033[3B")
     # use for loop here to find correct line to clear
 
     blanks = " " * len(status)
     print(f"\r{blanks}\r", end="")
 
 
-def send_channel_status(data):
-    route.send(data.encode())
+def send_channel_subscriptions(data):
+    route.send(msgpack.packb(data))
 
 
 # def completely_remove_client_from_chat(object):
@@ -52,7 +53,7 @@ def route_clients_to_squads(client, team):
     number = channel_data["total_connected"]
     id = len(team)
 
-    if number % 4 == 0:
+    if number % 4 == 0:  # start a new squad of 2 for each team
         team.append({f"Squad{id}": []})
         channel_data["Team2"].append({f"Squad{id}": []})
     else:
@@ -79,7 +80,6 @@ def route_clients_to_teams(client):
 
 def parse(message):
     data = message.split(":")
-    print(data)
     return data
 
 
@@ -92,7 +92,7 @@ async def supervisor():
 
 async def receive():
     msg = await route.recv()
-    msg = msg.decode()
+    msg = msgpack.unpackb(msg)
     return parse(msg)
 
 
@@ -106,7 +106,7 @@ async def start_tcp_server():
             if name in channel_data["All"]:
                 channel_data["All"].remove(name)
                 print(channel_data)
-            route.send(b"")
+            route.send(msgpack.packb(""))
         elif "username" in msg_data:
             channel, _, name = msg_data
             route_clients_to_teams(name)
