@@ -50,17 +50,25 @@ def is_input_tab(input):
         return False
 
 
-def change_channels():
-    global channel
-    if channel == channels[0]:
-        channel = channels[1]
-        console.print(f"[bold blue]{channel} channel active.")
-    elif channel == channels[1]:
-        channel = channels[2]
-        console.print(f"[bold green]{channel[5:len(channel)-1]} channel active.")
+def change_channels(input):
+    private_message_signal = "\t\t\n"
+    if input == private_message_signal:
+        dealer.send(msgpack.packb("private_message"))
+        console.print("[bold purple]Private message mode activated.")
     else:
-        channel = channels[0]
-        console.print(f"[bold yellow]{channel} channel active.")
+        global channel
+        if channel == channels[0]:
+            channel = channels[1]
+            console.print(f"[bold blue]{channel} channel active.")
+        elif channel == channels[1]:
+            channel = channels[2]
+            console.print(f"[bold green]{channel[5:len(channel)-1]} channel active.")
+        else:
+            channel = channels[0]
+            console.print(f"[bold yellow]{channel} channel active.")
+
+
+# def display_all_clients():
 
 
 def read_input():
@@ -68,7 +76,9 @@ def read_input():
     if input != "\n":
         erase_input_line()
     if is_input_tab(input):
-        change_channels()
+        change_channels(input)
+        # if not change_channels(input):
+
         return None
     else:
         valid = validate_input(input)
