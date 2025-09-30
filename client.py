@@ -68,7 +68,22 @@ def change_channels(input):
             console.print(f"[bold yellow]{channel} channel active.")
 
 
-# def display_all_clients():
+def display_clients_for_private_messaging(response):
+    privat_message_list = ""
+    for idx in range(len(response)):
+        client_data = response[idx]
+        if idx % 2 == 0:
+            privat_message_list += "\n"
+        for id, name in client_data.items():
+            privat_message_list += f"[{id}: {name}] "
+
+    rich.print(privat_message_list)
+    console.print(
+        "[bold purple]\nThese are End-to-End Encrypted Direct "
+        "messages.\nEnter the number of the person you'd like to "
+        "speak with below.\nWe will create a unique identifier "
+        "only you and that person are subscribed to."
+    )
 
 
 def read_input():
@@ -123,24 +138,9 @@ async def response():
     if response != "":
         if isinstance(response, str):
             new_channels = response.split(" ")
-            print(f"what are new channels after split {new_channels}")
             add_channel_and_subscribe(new_channels)
         else:
-            privat_message_list = ""
-            for idx in range(len(response)):
-                client_data = response[idx]
-                if idx % 2 == 0:
-                    privat_message_list += "\n"
-                for id, name in client_data.items():
-                    privat_message_list += f"[{id}: {name}] "
-
-            rich.print(privat_message_list)
-            console.print(
-                "[bold purple]\nThese are End-to-End Encrypted Direct "
-                "messages.\nEnter the number of the person you'd like to "
-                "speak with below.\nWe will create a unique identifier "
-                "only you and that person are subscribed to."
-            )
+            display_clients_for_private_messaging(response)
 
 
 def display_who_joined_chat(msg_data, username):
