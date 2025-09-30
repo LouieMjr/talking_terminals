@@ -121,9 +121,26 @@ async def response():
     # if isinstance(response, bytes):
     # response = response.decode()
     if response != "":
-        new_channels = response.split(" ")
-        add_channel_and_subscribe(new_channels)
-        # return new_channels
+        if isinstance(response, str):
+            new_channels = response.split(" ")
+            print(f"what are new channels after split {new_channels}")
+            add_channel_and_subscribe(new_channels)
+        else:
+            privat_message_list = ""
+            for idx in range(len(response)):
+                client_data = response[idx]
+                if idx % 2 == 0:
+                    privat_message_list += "\n"
+                for id, name in client_data.items():
+                    privat_message_list += f"[{id}: {name}] "
+
+            rich.print(privat_message_list)
+            console.print(
+                "[bold purple]\nThese are End-to-End Encrypted Direct "
+                "messages.\nEnter the number of the person you'd like to "
+                "speak with below.\nWe will create a unique identifier "
+                "only you and that person are subscribed to."
+            )
 
 
 def display_who_joined_chat(msg_data, username):
