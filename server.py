@@ -98,6 +98,13 @@ async def receive():
     return parse(msg)
 
 
+def client_joined_chat(msg_data):
+    channel, _, name = msg_data
+    route_clients_to_teams(name)
+    rich.print(channel_data)
+    publisher.send(f"{channel}:{name} has joined.".encode())
+
+
 async def start_tcp_server():
     rich.print(f"Server running on port: {port}")
 
@@ -110,10 +117,7 @@ async def start_tcp_server():
                 print(channel_data)
             route.send(msgpack.packb(""))
         elif "username" in msg_data:
-            channel, _, name = msg_data
-            route_clients_to_teams(name)
-            rich.print(channel_data)
-            publisher.send(f"{channel}:{name} has joined.".encode())
+            client_joined_chat(msg_data)
 
         else:
             channel, client, message = msg_data
