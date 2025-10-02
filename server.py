@@ -46,9 +46,6 @@ def send_channel_subscriptions(data):
     route.send(msgpack.packb(data))
 
 
-# def completely_remove_client_from_chat(object):
-
-
 def route_clients_to_squads(client, team):
     number = channel_data["total_connected"]
     id = len(team)
@@ -118,16 +115,16 @@ async def start_tcp_server():
             route.send(msgpack.packb(""))
         elif "username" in msg_data:
             client_joined_chat(msg_data)
+            route.send(msgpack.packb(""))
 
+        elif "private_message" == msg_data[0]:
+            private_message_list = msgpack.packb(channel_data["All"])
+            route.send(private_message_list)
         else:
-            if "private_message" == msg_data[0]:
-                private_message_list = msgpack.packb(channel_data["All"])
-                route.send(private_message_list)
-            else:
-                channel, client, message = msg_data
-                route.send(msgpack.packb(""))
-                message = f"{channel}:{client}:{message}".encode()
-                publisher.send(message)
+            channel, client, message = msg_data
+            message = f"{channel}:{client}:{message}".encode()
+            publisher.send(message)
+            route.send(msgpack.packb(""))
 
 
 asyncio.run(start_tcp_server())
