@@ -22,7 +22,14 @@ route = context.socket(zmq.REP)
 publisher.bind(f"tcp://localhost:{port1}")
 route.bind(f"tcp://localhost:{port}")
 
-channel_data = {"All": [], "Team1": [], "Team2": [], "total_connected": 0}
+channel_data = {
+    "All": [],
+    "Team1": [],
+    "Team2": [],
+    "Private_channels": [],
+    "total_connected": 0,
+}
+# private_message_mode = False
 
 
 async def spin(msg):
