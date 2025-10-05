@@ -70,7 +70,7 @@ def route_clients_to_squads(client, team):
 
 def route_clients_to_teams(client):
     total_clients = channel_data["total_connected"]
-    channel_data["All"].append({str(total_clients): client})
+    channel_data["All"].append({client: str(total_clients)})
 
     if total_clients % 2 == 0:
         squad_ch = route_clients_to_squads(client, channel_data["Team1"])
