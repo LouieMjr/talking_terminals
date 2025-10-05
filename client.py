@@ -12,7 +12,9 @@ context = zmq.asyncio.Context()
 console = Console()
 channels = ["All"]
 channel = channels[0]
-
+USERNAME = ""
+private_message_mode = False
+current_client_list = None
 
 print("Connecting to server...")
 dealer = context.socket(zmq.REQ)
@@ -38,6 +40,82 @@ async def poll_for_events():
     return sockets
 
 
+def erase_input_line():
+    print("\033[1A\033[2K", end="\r")
+
+
+def validate_input(input):
+    if input == "\n":
+        print("\033[1A", end="\r")
+        return False
+    return True
+
+
+def send_join_signal(name):
+    dealer.send(msgpack.packb(f"{channel}:username:{name}"))
+
+
+def display_who_joined_chat(msg_data, username):
+    _, message = msg_data
+    if username in message:
+        message = "You joined the chat."
+
+    console.print(f"[bold red]{message}")
+
+
+def color_picker(channel, bold):
+    if channel not in channels:
+        return None
+    if channel == "All":
+        if bold:
+            return "[bold yellow]"
+        return "[yellow]"
+    elif (
+        channel == "Team1"
+        and channel in channels
+        or channel == "Team2"
+        and channel in channels
+    ):
+        if bold:
+            return "[bold blue]"
+        return "[blue]"
+    elif "Squad" in channel and channel in channels:
+        if bold:
+            return "[bold green]"
+        return "[green]"
+    else:
+        return "[bold purple]"
+
+
+# Turn into "Display Channel"
+def channel_color(from_ch):
+    if from_ch not in channels:
+        return None
+    if from_ch == "All":
+        return "[yellow][All]"
+    elif (
+        from_ch == "Team1"
+        and from_ch in channels
+        or from_ch == "Team2"
+        and from_ch in channels
+    ):
+        return "[blue][Team]"
+    elif "Squad" in from_ch and from_ch in channels:
+        return "[green][Squad]"
+    else:
+        return "[bold purple][Private]"
+
+
+def display_client_message(msg_data, username):
+    from_channel, user, message = msg_data
+    if username in user:
+        user = "Me"
+
+    color_and_channel = channel_color(from_channel)
+    if color_and_channel is not None:
+        console.print(f"{color_and_channel}[{user}]: {message}")
+
+
 def is_input_tab(input):
     tab = "\t"
 
@@ -50,50 +128,64 @@ def is_input_tab(input):
         return False
 
 
-def change_channels(input):
-    private_message_signal = "\t\t\n"
-    if input == private_message_signal:
-        dealer.send(msgpack.packb("private_message"))
+def input_is_private_message_request(tab):
+    global private_message_mode
+    private_message_signal = "\t\t"
+    if tab == private_message_signal:
+        private_message_mode = True
         console.print("[bold purple]Private message mode activated.")
+        return True
+    return False
+
+
+def change_channels():
+    global channel
+
+    if channel == channels[0]:
+        channel = channels[1]
+        console.print(f"[bold blue]{channel} channel active.")
+    elif channel == channels[1]:
+        channel = channels[2]
+        console.print(f"[bold green]{channel[5:len(channel)-1]} channel active.")
     else:
-        global channel
-        if channel == channels[0]:
-            channel = channels[1]
-            console.print(f"[bold blue]{channel} channel active.")
-        elif channel == channels[1]:
-            channel = channels[2]
-            console.print(f"[bold green]{channel[5:len(channel)-1]} channel active.")
-        else:
-            channel = channels[0]
-            console.print(f"[bold yellow]{channel} channel active.")
+        channel = channels[0]
+        console.print(f"[bold yellow]{channel} channel active.")
 
 
-def display_clients_for_private_messaging(response):
-    privat_message_list = ""
+def display_client_options_for_private_messaging(response):
+    private_message_list = ""
     for idx in range(len(response)):
         client_data = response[idx]
-        if idx % 2 == 0:
-            privat_message_list += "\n"
-        for id, name in client_data.items():
-            privat_message_list += f"[{id}: {name}] "
+        # uncomment below to display list of clients in groups of 2
+        # if idx % 2 == 0:
+        # private_message_list += "\n"
+        for name, id in client_data.items():
+            if name != USERNAME:
+                private_message_list += f"[{id}: {name}]\n"
 
-    rich.print(privat_message_list)
+    rich.print(private_message_list)
     console.print(
-        "[bold purple]\nThese are End-to-End Encrypted Direct "
-        "messages.\nEnter the number of the person you'd like to "
+        "[bold purple]Enter the number of the person you'd like to "
         "speak with below.\nWe will create a unique identifier "
         "only you and that person are subscribed to."
     )
 
 
 def read_input():
+    global private_message_mode
     input = sys.stdin.readline()
+
+    if "\n" in input:
+        input = input.replace("\n", "")
     if input != "\n":
         erase_input_line()
     if is_input_tab(input):
-        change_channels(input)
-        # if not change_channels(input):
-
+        if input_is_private_message_request(input):
+            dealer.send(msgpack.packb(f"{private_message_mode}"))
+        else:
+            if private_message_mode:
+                private_message_mode = False
+            change_channels()
         return None
     else:
         valid = validate_input(input)
@@ -103,72 +195,55 @@ def read_input():
             return input
 
 
-def send_join_signal(name):
-    dealer.send(msgpack.packb(f"{channel}:username:{name}"))
-
-
-def deliver_msg(msg_data):
+def send_channel_message(msg_data):
     username, message = msg_data
-    # print(f"what channel is this on: {channel}")
-    dealer.send(msgpack.packb(f"{channel}:{username}:{message}"))
+    if private_message_mode:
+        dealer.send(
+            msgpack.packb(f"{private_message_mode}:{channel}:{username}:{message}")
+        )
+    else:
+        dealer.send(msgpack.packb(f"{channel}:{username}:{message}"))
 
 
-def erase_input_line():
-    print("\033[1A\033[2K", end="\r")
-
-
-def validate_input(input):
-    if input == "\n":
-        print("\033[1A", end="\r")
-        return False
-    return True
-
-
-def add_channel_and_subscribe(new_channels):
-    for channel in new_channels:
-        channels.append(channel)
-        subscriber.subscribe(channel.encode())
+def add_channels_and_subscribe(new_channels):
+    for channel in new_channels.split(" "):
+        if channel not in channels:
+            channels.append(channel)
+            subscriber.subscribe(channel.encode())
 
 
 async def response():
+    global private_message_mode, current_client_list
+
     response = await dealer.recv()
     response = msgpack.unpackb(response)
-    # if isinstance(response, bytes):
-    # response = response.decode()
     if response != "":
         if isinstance(response, str):
-            new_channels = response.split(" ")
-            add_channel_and_subscribe(new_channels)
+            add_channels_and_subscribe(response)
         else:
-            display_clients_for_private_messaging(response)
+            if len(response) <= 1:
+                private_message_mode = False
+                purple_message = "[bold purple]No one available to DM.\n"
+                message = (
+                    f"{color_picker(channel, True)}*{channel} channel is still active*"
+                )
+                console.print(f"{purple_message}{message}")
 
-
-def display_who_joined_chat(msg_data, username):
-    _, message = msg_data
-    if username in message:
-        message = "You joined the chat."
-
-    console.print(f"[bold red]{message}")
-
-
-def display_client_message(msg_data, username):
-    from_channel, user, message = msg_data
-    if username in user:
-        user = "Me"
-    global channel
-    if from_channel == "All":
-        console.print(f"[yellow][All][{user}]: {message}", end="")
-    elif (
-        "Team" in from_channel
-        and from_channel in channels
-        and "Squad" not in from_channel
-    ):
-        console.print(f"[blue][Team][{user}]: {message}", end="")
-    elif "Squad" in from_channel and from_channel in channels:
-        console.print(f"[green][Squad][{user}]: {message}", end="")
+            else:
+                if isinstance(response[0], dict):
+                    #### GET LIST OF AVAILABLE PEOPLE TO DM
+                    current_client_list = response
+                    add_channels_and_subscribe(channel)
+                    display_client_options_for_private_messaging(response)
+                else:
+                    for client in response[1]:
+                        print(client)
+                        if USERNAME == client:
+                            print(client)
 
 
 async def main():
+    global USERNAME
     USERNAME = input("What should people call you? ").title()
     send_join_signal(USERNAME)
 
@@ -184,19 +259,30 @@ async def main():
             if socket_or_fd == 0:  # if we have an input from stdin
                 message = read_input()  # use readline to capture that input/msg
                 if message is not None and message is not False:
-                    deliver_msg([USERNAME, message])
+                    send_channel_message([USERNAME, message])
             if socket_or_fd == subscriber:
                 msg_data = await subscriber.recv()
                 msg_data = msg_data.decode().split(":")
 
                 if len(msg_data) <= 2:
                     display_who_joined_chat(msg_data, USERNAME)
-                else:
+                elif len(msg_data) == 3:
                     display_client_message(msg_data, USERNAME)
+                else:
+                    if USERNAME in msg_data:
+                        (
+                            all_ch,
+                            pm_ch,
+                            _,
+                            _,
+                        ) = msg_data
+                        add_channels_and_subscribe(pm_ch)
+                        global channel
+                        channel = pm_ch
             if socket_or_fd == dealer:
-                res = await response()
-                if res is not None:
-                    rich.print(res)
+                await response()
+                # if res is not None:
+                # rich.print(res)
 
 
 asyncio.run(main())
