@@ -29,7 +29,6 @@ channel_data = {
     "Private_channels": [],
     "total_connected": 0,
 }
-# private_message_mode = False
 
 
 async def spin(msg):
@@ -43,7 +42,7 @@ async def spin(msg):
 
     # move up 4 lines, clear entire line, move down 3 lines
     # print("\033[4A\033[2K\033[3B")
-    # use for loop here to find correct line to clear
+    # eventually use for loop here to find correct line to clear
 
     blanks = " " * len(status)
     print(f"\r{blanks}\r", end="")
