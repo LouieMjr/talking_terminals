@@ -109,6 +109,53 @@ def client_joined_chat(msg_data):
     publisher.send(f"{channel}:{name} has joined.".encode())
 
 
+def make_subscription_out_of_even_elements(lst):
+    data = []
+
+    for idx in range(len(lst)):
+        if idx % 2 == 0:
+            if lst[idx] == "True":
+                data.append("pm")
+            else:
+                data.append(lst[idx])
+
+    subscription = ""
+    data.sort()
+
+    for part in data:
+        subscription += part
+        if part in lst:
+            lst.remove(part)
+    lst.remove("True")
+    return subscription
+
+
+def create_subscription_between_two_clients(msg_data):
+    bool_str, channel, name, id = msg_data
+    clients = []
+    clients.append(bool_str)
+    clients.append(channel)
+    for client_data in channel_data["All"]:
+        if name in client_data:
+            if client_data[name] not in clients:
+                clients.append(client_data[name])
+                clients.append(name)
+        else:
+            if id in client_data.values():
+                clients.append(id)
+                clients += list(client_data.keys())
+
+    topic_sub = make_subscription_out_of_even_elements(clients)
+
+    if topic_sub not in channel_data["Private_channels"]:
+        channel_data["Private_channels"].append(topic_sub)
+    rich.print(channel_data)
+
+    print(f"what is clients: {clients}\nand its length: {len(clients)}")
+    channel, client1, client2 = clients
+    return f"All:{topic_sub}:{client1}:{client2}".encode()
+
+
 async def start_tcp_server():
     rich.print(f"Server running on port: {port}")
 
@@ -124,9 +171,28 @@ async def start_tcp_server():
             client_joined_chat(msg_data)
             route.send(msgpack.packb(""))
 
-        elif "private_message" == msg_data[0]:
-            private_message_list = msgpack.packb(channel_data["All"])
-            route.send(private_message_list)
+        elif "True" in msg_data[0]:
+            if len(msg_data) == 4:
+                bool_str, channel, name, id = msg_data
+                """
+                Below works if requesting client made a selection to DM
+                another client, while in either of these channels
+                """
+                if channel == "All" or "Team" in channel or "Squad" in channel:
+                    message = create_subscription_between_two_clients(msg_data)
+                    publisher.send(message)
+
+                else:
+                    # otherwise this is where actual private messages are being
+                    # sent on those private channels
+                    message = f"{channel}:{name}:{id}".encode()
+                    publisher.send(message)
+                route.send(msgpack.packb(""))
+            else:
+                # length of msg_data 2 at this point
+                # send requesting client list of avaialable clients to DM
+                private_message_list = msgpack.packb(channel_data["All"])
+                route.send(private_message_list)
         else:
             channel, client, message = msg_data
             message = f"{channel}:{client}:{message}".encode()
