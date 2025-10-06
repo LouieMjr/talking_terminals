@@ -53,7 +53,7 @@ def send_channel_subscriptions(data):
     route.send(msgpack.packb(data))
 
 
-def route_clients_to_squads(client, team):
+def route_clients_to_squads(client_data, team):
     number = channel_data["total_connected"]
     id = len(team)
 
@@ -64,7 +64,7 @@ def route_clients_to_squads(client, team):
         if len(team) != 0:
             id -= 1
 
-    team[id][f"Squad{id}"].append(client)
+    team[id][f"Squad{id}"].append(client_data)
     return f"Squad{id}"
 
 
@@ -75,11 +75,11 @@ def route_clients_to_teams(client):
     channel_data["All"].append(client_data)
 
     if total_clients % 2 == 0:
-        squad_ch = route_clients_to_squads(client, channel_data["Team1"])
+        squad_ch = route_clients_to_squads(client_data, channel_data["Team1"])
         channels = f"Team1 Team1{squad_ch}"
 
     else:
-        squad_ch = route_clients_to_squads(client, channel_data["Team2"])
+        squad_ch = route_clients_to_squads(client_data, channel_data["Team2"])
         channels = f"Team2 Team2{squad_ch}"
 
     channel_data["total_connected"] += 1

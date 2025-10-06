@@ -146,7 +146,7 @@ def change_channels():
         console.print(f"[bold blue]{channel} channel active.")
     elif channel == channels[1]:
         channel = channels[2]
-        console.print(f"[bold green]{channel[5:len(channel)-1]} channel active.")
+        console.print(f"[bold green]{channel[5 : len(channel) - 1]} channel active.")
     else:
         channel = channels[0]
         console.print(f"[bold yellow]{channel} channel active.")
