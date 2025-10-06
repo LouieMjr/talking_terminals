@@ -28,6 +28,7 @@ channel_data = {
     "Team2": [],
     "Private_channels": [],
     "total_connected": 0,
+    "uid": 0,
 }
 
 
@@ -69,7 +70,9 @@ def route_clients_to_squads(client, team):
 
 def route_clients_to_teams(client):
     total_clients = channel_data["total_connected"]
-    channel_data["All"].append({client: str(total_clients)})
+    unique_id = channel_data["uid"]
+    client_data = {client: str(unique_id)}
+    channel_data["All"].append(client_data)
 
     if total_clients % 2 == 0:
         squad_ch = route_clients_to_squads(client, channel_data["Team1"])
@@ -80,6 +83,7 @@ def route_clients_to_teams(client):
         channels = f"Team2 Team2{squad_ch}"
 
     channel_data["total_connected"] += 1
+    channel_data["uid"] += 1
     send_channel_subscriptions(channels)
 
 
