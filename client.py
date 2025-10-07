@@ -218,6 +218,8 @@ async def response():
 
     response = await dealer.recv()
     response = msgpack.unpackb(response)
+    if response == "quit":
+        return True
     if response != "":
         if isinstance(response, str):
             add_channels_and_subscribe(response)
@@ -281,9 +283,14 @@ async def main():
                         global channel
                         channel = pm_ch
             if socket_or_fd == dealer:
-                await response()
-                # if res is not None:
-                # rich.print(res)
+                terminate = await response()
+                if terminate:
+                    running = False
+
+    dealer.close()
+    subscriber.close()
+    context.term()
+    print("Connection Closed.")
 
 
 asyncio.run(main())
