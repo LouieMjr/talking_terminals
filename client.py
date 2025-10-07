@@ -15,6 +15,7 @@ channel = channels[0]
 USERNAME = ""
 private_message_mode = False
 current_client_list = None
+running = True
 
 print("Connecting to server...")
 dealer = context.socket(zmq.REQ)
@@ -243,11 +244,11 @@ async def response():
 
 
 async def main():
-    global USERNAME
+    global USERNAME, running
     USERNAME = input("What should people call you? ").title()
     send_join_signal(USERNAME)
 
-    while True:
+    while running:
         try:
             sockets = dict(await supervisor())
         except CancelledError:
