@@ -159,17 +159,53 @@ def create_subscription_between_two_clients(msg_data):
     return f"All:{topic_sub}:{client1}:{client2}".encode()
 
 
+def empty_team_list(lst):
+    for obj in lst:
+        for key, array in obj.items():
+            if "Squad" in key:
+                if len(array) == 0:
+                    lst.remove(obj)
+
+
+def remove_client_from_list(lst, name):
+    for obj in lst:
+        if name in obj:
+            lst.remove(obj)
+            break
+        else:
+            for _, value in obj.items():
+                if isinstance(value, list):
+                    remove_client_from_list(value, name)
+
+    empty_team_list(lst)
+
+
+def find_lists(name):
+    data = channel_data
+    for _, value in data.items():
+        if isinstance(value, list):
+            remove_client_from_list(value, name)
+
+
+def remove_client_from_all_lists(name):
+    find_lists(name)
+    update_total_connected()
+
+
+def update_total_connected():
+    if len(channel_data["All"]) != channel_data["total_connected"]:
+        channel_data["total_connected"] = len(channel_data["All"])
+
+
 async def start_tcp_server():
     rich.print(f"Server running on port: {port}")
 
     while True:
         msg_data = await supervisor()
-        if "quit" in msg_data:
-            _, name = msg_data
-            if name in channel_data["All"]:
-                channel_data["All"].remove(name)
-                print(channel_data)
-            route.send(msgpack.packb(""))
+        if "quit" == msg_data[-1]:
+            channel, name, message = msg_data
+            remove_client_from_all_lists(name)
+            route.send(msgpack.packb("quit"))
         elif "username" in msg_data:
             client_joined_chat(msg_data)
             route.send(msgpack.packb(""))
