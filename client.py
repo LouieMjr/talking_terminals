@@ -182,7 +182,7 @@ def read_input():
         erase_input_line()
     if is_input_tab(input):
         if input_is_private_message_request(input):
-            dealer.send(msgpack.packb(f"{private_message_mode}"))
+            dealer.send(msgpack.packb(f"{private_message_mode}:{USERNAME}:''"))
         else:
             if private_message_mode:
                 private_message_mode = False
