@@ -213,19 +213,8 @@ async def start_tcp_server():
         elif "True" in msg_data[0]:
             if len(msg_data) == 4:
                 bool_str, channel, name, id = msg_data
-                """
-                Below works if requesting client made a selection to DM
-                another client, while in either of these channels
-                """
-                if channel == "All" or "Team" in channel or "Squad" in channel:
-                    message = create_subscription_between_two_clients(msg_data)
-                    publisher.send(message)
-
-                else:
-                    # otherwise this is where actual private messages are being
-                    # sent on those private channels
-                    message = f"{channel}:{name}:{id}".encode()
-                    publisher.send(message)
+                message = create_subscription_between_two_clients(msg_data)
+                publisher.send(message)
                 route.send(msgpack.packb(""))
             else:
                 # length of msg_data 2 at this point
