@@ -49,6 +49,8 @@ def validate_input(input):
     if input == "\n":
         print("\033[1A", end="\r")
         return False
+    if input == "":
+        return False
     return True
 
 
