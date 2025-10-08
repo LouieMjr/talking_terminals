@@ -282,8 +282,9 @@ async def main():
                             _,
                         ) = msg_data
                         add_channels_and_subscribe(pm_ch)
-                        global channel
+                        global channel, private_message_mode
                         channel = pm_ch
+                        private_message_mode = False
             if socket_or_fd == dealer:
                 terminate = await response()
                 if terminate:
