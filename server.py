@@ -7,8 +7,11 @@ import msgpack
 import rich
 import zmq
 import zmq.asyncio
+from rich.console import Console
 
 context = zmq.asyncio.Context()
+console = Console()
+
 
 port = "5556"
 port1 = "5557"
@@ -109,7 +112,8 @@ def client_joined_chat(msg_data):
     channel, _, name = msg_data
     route_clients_to_teams(name)
     rich.print(channel_data)
-    publisher.send(f"{channel}:{name} has joined.".encode())
+    payload = f"{channel}:{name} has joined."
+    publish_message(payload)
 
 
 def make_subscription_out_of_even_elements(lst):
@@ -197,6 +201,10 @@ def update_total_connected():
         channel_data["total_connected"] = len(channel_data["All"])
 
 
+def publish_message(payload):
+    publisher.send(payload.encode())
+
+
 async def start_tcp_server():
     rich.print(f"Server running on port: {port}")
 
@@ -212,19 +220,25 @@ async def start_tcp_server():
 
         elif "True" in msg_data[0]:
             if len(msg_data) == 4:
+                console.print(
+                    "\n[bold purple] picked client to private message.\nSending back pm channel to clients"
+                )
                 bool_str, channel, name, id = msg_data
-                message = create_subscription_between_two_clients(msg_data)
-                publisher.send(message)
+                payload = prepare_to_make_topic_subscription(msg_data)
+                publish_message(payload)
                 route.send(msgpack.packb(""))
             else:
+                console.print(
+                    "\n[bold purple] private message requested\nSending back list"
+                )
                 # length of msg_data 2 at this point
                 # send requesting client list of avaialable clients to DM
                 private_message_list = msgpack.packb(channel_data["All"])
                 route.send(private_message_list)
         else:
             channel, client, message = msg_data
-            message = f"{channel}:{client}:{message}".encode()
-            publisher.send(message)
+            payload = f"{channel}:{client}:{message}"
+            publish_message(payload)
             route.send(msgpack.packb(""))
 
 
