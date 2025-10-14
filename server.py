@@ -116,51 +116,36 @@ def client_joined_chat(msg_data):
     publish_message(payload)
 
 
-def make_subscription_out_of_even_elements(lst):
-    data = []
-
-    for idx in range(len(lst)):
-        if idx % 2 == 0:
-            if lst[idx] == "True":
-                data.append("pm")
-            else:
-                data.append(lst[idx])
-
-    subscription = ""
-    data.sort()
-
-    for part in data:
-        subscription += part
-        if part in lst:
-            lst.remove(part)
-    lst.remove("True")
-    return subscription
+def make_private_channel_for_clients(client_data):
+    ids = list(client_data.values())
+    return "pm".join(ids)
 
 
-def create_subscription_between_two_clients(msg_data):
-    bool_str, channel, name, id = msg_data
-    clients = []
-    clients.append(bool_str)
-    clients.append(channel)
-    for client_data in channel_data["All"]:
-        if name in client_data:
-            if client_data[name] not in clients:
-                clients.append(client_data[name])
-                clients.append(name)
+def prepare_to_make_topic_subscription(msg_data):
+    _, _, name, requested_id = msg_data
+    client_data = {}
+
+    for data in channel_data["All"]:
+        if name in data:
+            print(f"{data[name]} not in {client_data}: {data[name] not in client_data}")
+            if data[name] not in client_data:
+                requester_client_id = data[name]
+                client_data[name] = requester_client_id
         else:
-            if id in client_data.values():
-                clients.append(id)
-                clients += list(client_data.keys())
+            if requested_id in data.values():
+                requested_client = list(data.keys())[0]
+                client_data[requested_client] = requested_id
 
-    topic_sub = make_subscription_out_of_even_elements(clients)
+    topic_sub = make_private_channel_for_clients(client_data)
 
     if topic_sub not in channel_data["Private_channels"]:
         channel_data["Private_channels"].append(topic_sub)
     rich.print(channel_data)
 
-    print(f"what is clients: {clients}\nand its length: {len(clients)}")
-    channel, client1, client2 = clients
-    return f"All:{topic_sub}:{client1}:{client2}".encode()
+    client1, client2 = list(client_data.keys())
+
+    payload = f"All:{topic_sub}:{client1}:{client2}"
+    return payload
 
 
 def empty_team_list(lst):
