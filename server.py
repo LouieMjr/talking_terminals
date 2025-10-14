@@ -206,7 +206,7 @@ async def start_tcp_server():
         elif "True" in msg_data[0]:
             if len(msg_data) == 4:
                 console.print(
-                    "\n[bold purple] picked client to private message.\nSending back pm channel to clients"
+                    "\n[bold purple]Picked client to private message.\nSending back pm channel to clients"
                 )
                 bool_str, channel, name, id = msg_data
                 payload = prepare_to_make_topic_subscription(msg_data)
@@ -214,7 +214,7 @@ async def start_tcp_server():
                 route.send(msgpack.packb(""))
             else:
                 console.print(
-                    "\n[bold purple] private message requested\nSending back list"
+                    "\n[bold purple]Private message requested.\nSending back list"
                 )
                 # length of msg_data 2 at this point
                 # send requesting client list of avaialable clients to DM
