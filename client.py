@@ -66,7 +66,7 @@ def display_who_joined_chat(msg_data, username):
     console.print(f"[bold red]{message}")
 
 
-def color_picker(channel, bold):
+def text_color_based_on_channel(channel, bold):
     if channel not in channels:
         return None
     if channel == "All":
@@ -229,9 +229,7 @@ async def response():
             if len(response) <= 1:
                 private_message_mode = False
                 purple_message = "[bold purple]No one available to DM.\n"
-                message = (
-                    f"{color_picker(channel, True)}*{channel} channel is still active*"
-                )
+                message = f"{text_color_based_on_channel(channel, True)}*{channel} channel is still active*"
                 console.print(f"{purple_message}{message}")
 
             else:
@@ -287,7 +285,7 @@ async def main():
                         private_message_mode = False
                         if requesting_client == USERNAME:
                             console.print(
-                                f"{color_picker(channel, True)}You are now messaging {requested_client}"
+                                f"{text_color_based_on_channel(channel, True)}You are now messaging {requested_client}"
                             )
             if socket_or_fd == dealer:
                 terminate = await response()
