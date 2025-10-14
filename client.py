@@ -14,7 +14,8 @@ channels = ["All"]
 channel = channels[0]
 USERNAME = ""
 private_message_mode = False
-current_client_list = None
+private_message_ids = []
+client_list = None
 running = True
 
 print("Connecting to server...")
@@ -46,11 +47,18 @@ def erase_input_line():
 
 
 def validate_input(input):
+    global private_message_ids
     if input == "\n":
         print("\033[1A", end="\r")
         return False
     if input == "":
         return False
+    if private_message_mode:
+        if input not in private_message_ids:
+            console.print(
+                f"{text_color_based_on_channel(channel, False, True)}Need to enter in a valid id from the list."
+            )
+            return False
     return True
 
 
@@ -164,6 +172,7 @@ def display_client_options_for_private_messaging(response):
         # private_message_list += "\n"
         for name, id in client_data.items():
             if name != USERNAME:
+                private_message_ids.append(id)
                 private_message_list += f"[{id}: {name}]\n"
 
     rich.print(private_message_list)
@@ -216,7 +225,7 @@ def add_channels_and_subscribe(new_channels):
 
 
 async def response():
-    global private_message_mode, current_client_list
+    global private_message_mode, client_list
 
     response = await dealer.recv()
     response = msgpack.unpackb(response)
@@ -235,9 +244,9 @@ async def response():
             else:
                 if isinstance(response[0], dict):
                     #### GET LIST OF AVAILABLE PEOPLE TO DM
-                    current_client_list = response
+                    client_list = response
                     add_channels_and_subscribe(channel)
-                    display_client_options_for_private_messaging(response)
+                    display_client_options_for_private_messaging(client_list)
                 else:
                     for client in response[1]:
                         print(client)
