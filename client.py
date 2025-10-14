@@ -278,13 +278,17 @@ async def main():
                         (
                             all_ch,
                             pm_ch,
-                            _,
-                            _,
+                            requesting_client,
+                            requested_client,
                         ) = msg_data
                         add_channels_and_subscribe(pm_ch)
                         global channel, private_message_mode
                         channel = pm_ch
                         private_message_mode = False
+                        if requesting_client == USERNAME:
+                            console.print(
+                                f"{color_picker(channel, True)}You are now messaging {requested_client}"
+                            )
             if socket_or_fd == dealer:
                 terminate = await response()
                 if terminate:
