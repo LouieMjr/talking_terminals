@@ -74,7 +74,9 @@ def display_who_joined_chat(msg_data, username):
     console.print(f"[bold red]{message}")
 
 
-def text_color_based_on_channel(channel, bold):
+def text_color_based_on_channel(channel, bold, warning=False):
+    if warning:
+        return "[bold red]"
     if channel not in channels:
         return None
     if channel == "All":
