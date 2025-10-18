@@ -127,7 +127,6 @@ def prepare_to_make_topic_subscription(msg_data):
 
     for data in channel_data["All"]:
         if name in data:
-            print(f"{data[name]} not in {client_data}: {data[name] not in client_data}")
             if data[name] not in client_data:
                 requester_client_id = data[name]
                 client_data[name] = requester_client_id
@@ -162,9 +161,10 @@ def remove_client_from_list(lst, name):
             lst.remove(obj)
             break
         else:
-            for _, value in obj.items():
-                if isinstance(value, list):
-                    remove_client_from_list(value, name)
+            if isinstance(obj, dict):
+                for _, value in obj.items():
+                    if isinstance(value, list):
+                        remove_client_from_list(value, name)
 
     empty_team_list(lst)
 
