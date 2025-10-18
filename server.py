@@ -171,8 +171,8 @@ def remove_client_from_list(lst, name):
 
 def find_lists(name):
     data = channel_data
-    for _, value in data.items():
-        if isinstance(value, list):
+    for key, value in data.items():
+        if isinstance(value, list) and key != "Private_channels":
             remove_client_from_list(value, name)
 
 
