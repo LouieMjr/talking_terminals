@@ -66,7 +66,7 @@ def send_join_signal(name):
     dealer.send(msgpack.packb(f"{channel}:username:{name}"))
 
 
-def display_who_joined_chat(msg_data, username):
+def display_joiners_and_leavers(msg_data, username):
     _, message = msg_data
     if username in message:
         message = "You joined the chat."
@@ -231,8 +231,6 @@ async def response():
 
     response = await dealer.recv()
     response = msgpack.unpackb(response)
-    if response == "quit":
-        return True
     if response != "":
         if isinstance(response, str):
             add_channels_and_subscribe(response)
@@ -265,8 +263,7 @@ async def main():
         try:
             sockets = dict(await supervisor())
         except CancelledError:
-            await dealer.send(msgpack.packb(f"quit:{USERNAME}"))
-            print("Pressed CTRL C")
+            await dealer.send(msgpack.packb(f"All:{USERNAME}:quit"))
             break
 
         for socket_or_fd, events in sockets.items():
@@ -274,12 +271,14 @@ async def main():
                 message = read_input()  # use readline to capture that input/msg
                 if message is not None and message is not False:
                     send_channel_message([USERNAME, message])
+                    if message == "quit":
+                        running = False
             if socket_or_fd == subscriber:
                 msg_data = await subscriber.recv()
                 msg_data = msg_data.decode().split(":")
 
                 if len(msg_data) <= 2:
-                    display_who_joined_chat(msg_data, USERNAME)
+                    display_joiners_and_leavers(msg_data, USERNAME)
                 elif len(msg_data) == 3:
                     display_client_message(msg_data, USERNAME)
                 else:
@@ -299,9 +298,7 @@ async def main():
                                 f"{text_color_based_on_channel(channel, True)}You are now messaging {requested_client}"
                             )
             if socket_or_fd == dealer:
-                terminate = await response()
-                if terminate:
-                    running = False
+                await response()
 
     dealer.close()
     subscriber.close()
