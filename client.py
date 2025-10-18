@@ -255,9 +255,13 @@ async def response():
 
 
 async def main():
-    global USERNAME, running
-    USERNAME = input("What should people call you? ").title()
-    send_join_signal(USERNAME)
+    try:
+        global USERNAME, running
+        USERNAME = input("What should people call you? ").title()
+        send_join_signal(USERNAME)
+    except KeyboardInterrupt:
+        erase_input_line()
+        print("Connection closing.")
 
     while running:
         try:
