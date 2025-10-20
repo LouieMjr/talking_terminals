@@ -57,17 +57,21 @@ def send_channel_subscriptions(data):
 
 
 def route_clients_to_squads(client_data, team):
-    number = channel_data["total_connected"]
     id = len(team)
 
-    if number % 4 == 0:  # start a new squad of 2 for each team
+    if len(team) == 0:
         team.append({f"Squad{id}": []})
-        channel_data["Team2"].append({f"Squad{id}": []})
-    else:
-        if len(team) != 0:
+    if id > 0:
+        if len(team[id - 1][f"Squad{id - 1}"]) < 2:
             id -= 1
+            team[id][f"Squad{id}"].append(client_data)
+            return f"Squad{id}"
+        else:
+            team.append({f"Squad{id}": []})
+            team[id][f"Squad{id}"].append(client_data)
+    else:
+        team[id][f"Squad{id}"].append(client_data)
 
-    team[id][f"Squad{id}"].append(client_data)
     return f"Squad{id}"
 
 
