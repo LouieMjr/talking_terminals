@@ -298,8 +298,9 @@ async def main():
                         channel = pm_ch
                         private_message_mode = False
                         if requesting_client == USERNAME:
+                            message = f"You are now messaging {requested_client}"
                             console.print(
-                                f"{text_color_based_on_channel(channel, True)}You are now messaging {requested_client}"
+                                f"{text_color_based_on_channel(channel, True)}{message}"
                             )
             if socket_or_fd == dealer:
                 await response()
