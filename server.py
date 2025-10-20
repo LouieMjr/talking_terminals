@@ -2,6 +2,7 @@ import asyncio
 import itertools
 import sys
 from asyncio.exceptions import CancelledError
+from random import randint
 
 import msgpack
 import rich
@@ -33,6 +34,8 @@ channel_data = {
     "total_connected": 0,
     "uid": 0,
 }
+
+unique_ids = set()
 
 
 async def spin(msg):
@@ -75,9 +78,18 @@ def route_clients_to_squads(client_data, team):
     return f"Squad{id}"
 
 
+def generate_unique_random_number(unique_ids):
+    unique_id = randint(0, 100)
+    if unique_id in unique_ids:
+        generate_unique_random_number(unique_ids)
+    else:
+        unique_ids.add(unique_id)
+        return unique_id
+
+
 def route_clients_to_teams(client):
     total_clients = channel_data["total_connected"]
-    unique_id = channel_data["uid"]
+    unique_id = generate_unique_random_number(unique_ids)
     client_data = {client: str(unique_id)}
     channel_data["All"].append(client_data)
 
