@@ -32,7 +32,6 @@ channel_data = {
     "Team2": [],
     "Private_channels": [],
     "total_connected": 0,
-    "uid": 0,
 }
 
 unique_ids = set()
@@ -102,7 +101,6 @@ def route_clients_to_teams(client):
         channels = f"Team2 Team2{squad_ch}"
 
     channel_data["total_connected"] += 1
-    channel_data["uid"] += 1
     send_channel_subscriptions(channels)
 
 
