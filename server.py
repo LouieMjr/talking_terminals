@@ -126,14 +126,15 @@ def make_private_channel_for_clients(client_data):
 
 
 def prepare_to_make_topic_subscription(msg_data):
-    _, _, name, requested_id = msg_data
+    _, _, requesting_client, requested_id = msg_data
+    requested_client = None
     client_data = {}
 
     for data in channel_data["All"]:
-        if name in data:
-            if data[name] not in client_data:
-                requester_client_id = data[name]
-                client_data[name] = requester_client_id
+        if requesting_client in data:
+            if data[requesting_client] not in client_data:
+                requester_client_id = data[requesting_client]
+                client_data[requesting_client] = requester_client_id
         else:
             if requested_id in data.values():
                 requested_client = list(data.keys())[0]
@@ -145,9 +146,7 @@ def prepare_to_make_topic_subscription(msg_data):
         channel_data["Private_channels"].append(topic_sub)
     rich.print(channel_data)
 
-    client1, client2 = list(client_data.keys())
-
-    payload = f"All:{topic_sub}:{client1}:{client2}"
+    payload = f"All:{topic_sub}:{requesting_client}:{requested_client}"
     return payload
 
 
@@ -214,7 +213,7 @@ async def start_tcp_server():
                 console.print(
                     "\n[bold purple]Picked client to private message.\nSending back pm channel to clients"
                 )
-                bool_str, channel, name, id = msg_data
+                # bool_str, channel, requesting_client, id = msg_data
                 payload = prepare_to_make_topic_subscription(msg_data)
                 publish_message(payload)
                 route.send(msgpack.packb(""))
