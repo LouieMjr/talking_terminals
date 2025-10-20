@@ -295,9 +295,9 @@ async def main():
                         ) = msg_data
                         add_channels_and_subscribe(pm_ch)
                         global channel, private_message_mode
-                        channel = pm_ch
                         private_message_mode = False
                         if requesting_client == USERNAME:
+                            channel = pm_ch
                             message = f"You are now messaging {requested_client}"
                             console.print(
                                 f"{text_color_based_on_channel(channel, True)}{message}"
