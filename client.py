@@ -179,8 +179,8 @@ def display_client_options_for_private_messaging(response):
 
     console.print(
         "\n[bold purple]Enter the number of the person you'd like to "
-        "speak with below.\nWe will create a unique identifier "
-        "only you and that person are subscribed to."
+        "speak with below.\nA unique channel "
+        "will be created for you and this person to chat on."
     )
     rich.print(private_message_list)
 
