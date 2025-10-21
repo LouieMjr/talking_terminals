@@ -80,7 +80,7 @@ def route_clients_to_squads(client_data, team):
 def generate_unique_random_number(unique_ids):
     unique_id = randint(0, 100)
     if unique_id in unique_ids:
-        generate_unique_random_number(unique_ids)
+        return generate_unique_random_number(unique_ids)
     else:
         unique_ids.add(unique_id)
         return unique_id
