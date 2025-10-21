@@ -30,7 +30,7 @@ channel_data = {
     "All": [],
     "Team1": [],
     "Team2": [],
-    "Private_channels": [],
+    # "Private_channels": [],
     "total_connected": 0,
 }
 
@@ -152,8 +152,8 @@ def prepare_to_make_topic_subscription(msg_data):
 
     topic_sub = make_private_channel_for_clients(client_data)
 
-    if topic_sub not in channel_data["Private_channels"]:
-        channel_data["Private_channels"].append(topic_sub)
+    # if topic_sub not in channel_data["Private_channels"]:
+    # channel_data["Private_channels"].append(topic_sub)
     rich.print(channel_data)
 
     payload = f"All:{topic_sub}:{requesting_client}:{requested_client}"
@@ -185,7 +185,8 @@ def remove_client_from_list(lst, name):
 def find_lists(name):
     data = channel_data
     for key, value in data.items():
-        if isinstance(value, list) and key != "Private_channels":
+        if isinstance(value, list):
+            # if isinstance(value, list) and key != "Private_channels":
             remove_client_from_list(value, name)
 
 
