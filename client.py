@@ -306,6 +306,8 @@ async def main():
                 if len(msg_data) <= 2:
                     display_joiners_and_leavers(msg_data, USERNAME)
                 elif len(msg_data) == 3:
+                    if incoming_private_message[0]:
+                        erase_input_line()
                     display_client_message(msg_data, USERNAME)
                 else:
                     if USERNAME in msg_data:
