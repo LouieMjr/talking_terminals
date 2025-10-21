@@ -177,12 +177,12 @@ def display_client_options_for_private_messaging(response):
                 private_message_ids.append(id)
                 private_message_list += f"[{id}: {name}]\n"
 
-    rich.print(private_message_list)
     console.print(
-        "[bold purple]Enter the number of the person you'd like to "
+        "\n[bold purple]Enter the number of the person you'd like to "
         "speak with below.\nWe will create a unique identifier "
         "only you and that person are subscribed to."
     )
+    rich.print(private_message_list)
 
 
 def read_input():
