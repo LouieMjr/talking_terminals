@@ -15,6 +15,7 @@ channel = channels[0]
 USERNAME = ""
 private_message_mode = False
 private_message_ids = []
+incoming_private_message = [False]
 client_list = None
 running = True
 
@@ -59,6 +60,11 @@ def validate_input(input):
                 f"{text_color_based_on_channel(channel, False, True)}Need to enter in a valid id from the list."
             )
             return False
+    if incoming_private_message[0]:
+        input = input.lower()
+        if input != "y":
+            return False
+
     return True
 
 
@@ -121,12 +127,19 @@ def channel_color(from_ch):
 
 def display_client_message(msg_data, username):
     from_channel, user, message = msg_data
+    client = None
+    if username != user:
+        client = user
+        incoming_private_message.append(client)
     if username in user:
         user = "Me"
 
     color_and_channel = channel_color(from_channel)
     if color_and_channel is not None:
         console.print(f"{color_and_channel}[{user}]: {message}")
+        if channel != from_channel and "pm" in from_channel:
+            incoming_private_message[0] = True
+            console.print(f"[bold purple]Would you like message {client}? (y/n).")
 
 
 def is_input_tab(input):
@@ -186,7 +199,7 @@ def display_client_options_for_private_messaging(response):
 
 
 def read_input():
-    global private_message_mode
+    global private_message_mode, channel
     input = sys.stdin.readline()
 
     if "\n" in input:
@@ -206,7 +219,16 @@ def read_input():
         if not valid:
             return False
         else:
-            return input
+            if incoming_private_message[0]:
+                erase_input_line()
+                console.print(
+                    f"[bold purple]You are now messaging {incoming_private_message[1]}"
+                )
+                incoming_private_message[0] = False
+                channel = channels[-1]
+                return False
+            else:
+                return input
 
 
 def send_channel_message(msg_data):
