@@ -191,21 +191,20 @@ def display_client_options_for_private_messaging(response):
                 private_message_list += f"[{id}: {name}]\n"
 
     console.print(
-        "\n[bold purple]Enter the number of the person you'd like to "
-        "speak with below.\nA unique channel "
-        "will be created for you and this person to chat on."
+        "\n[bold purple]Enter the number corresponding with the person you'd like to "
+        "DM.\nA unique channel will be created for you and this person to chat on."
     )
     rich.print(private_message_list)
 
 
 def read_input():
     global private_message_mode, channel
-    input = sys.stdin.readline()
+    input = sys.stdin.readline().replace("\n", "")
 
-    if "\n" in input:
-        input = input.replace("\n", "")
-    if input != "\n":
-        erase_input_line()
+    # if "\n" in input:
+    # input = input.replace("\n", "")
+    # if input != "\n":
+    erase_input_line()
     if is_input_tab(input):
         if input_is_private_message_request(input):
             dealer.send(msgpack.packb(f"{private_message_mode}:{USERNAME}:''"))
