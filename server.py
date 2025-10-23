@@ -210,9 +210,9 @@ async def start_tcp_server():
     while True:
         msg_data = await supervisor()
         if "quit" == msg_data[-1]:
-            channel, name, _ = msg_data
+            _, name, _ = msg_data
             remove_client_from_all_lists(name)
-            payload = f"{channel}:{name} left the chat."
+            payload = f"All:{name} left the chat."
             publish_message(payload)
             route.send(msgpack.packb(""))
         elif "username" in msg_data:
