@@ -139,7 +139,7 @@ def display_client_message(msg_data, username):
         console.print(f"{color_and_channel}[{user}]: {message}")
         if channel != from_channel and "pm" in from_channel:
             incoming_private_message[0] = True
-            console.print(f"[bold purple]Would you like message {client}? (y/n).")
+            console.print(f"[bold purple]Would you like to message {client}? (y/n)")
 
 
 def is_input_tab(input):
