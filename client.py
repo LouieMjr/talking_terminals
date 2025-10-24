@@ -224,13 +224,20 @@ def read_input():
             return False
         else:
             if incoming_private_message[0]:
-                erase_input_line()
-                console.print(
-                    f"[bold purple]You are now messaging {incoming_private_message[1]}"
-                )
+                if input == "n":
+                    erase_input_line()
+                    color = f"{text_color_based_on_channel(channel, True)}"
+                    message = f"*{channel} channel is still active*"
+                    console.print(f"{color}{message}")
+                    # return False
+                else:
+                    erase_input_line()
+                    client = incoming_private_message[1]
+                    console.print(f"[bold purple]You are now messaging {client}")
+                    channel = channels[-1]
                 incoming_private_message[0] = False
-                channel = channels[-1]
                 return False
+
             else:
                 return input
 
