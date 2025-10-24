@@ -63,7 +63,11 @@ def validate_input(input):
             return False
     if incoming_private_message[0]:
         input = input.lower()
-        if input != "y":
+        if input != "y" and input != "n":
+            message = "Please enter 'y' or 'n'"
+            console.print(
+                f"{text_color_based_on_channel(channel, False, True)}{message}"
+            )
             return False
 
     return True
