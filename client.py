@@ -56,8 +56,9 @@ def validate_input(input):
         return False
     if private_message_mode:
         if input not in private_message_ids:
+            message = "Need to enter in a valid id from the list."
             console.print(
-                f"{text_color_based_on_channel(channel, False, True)}Need to enter in a valid id from the list."
+                f"{text_color_based_on_channel(channel, False, True)}{message}"
             )
             return False
     if incoming_private_message[0]:
