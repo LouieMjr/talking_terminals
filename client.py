@@ -206,9 +206,6 @@ def read_input():
     global private_message_mode, channel
     input = sys.stdin.readline().replace("\n", "")
 
-    # if "\n" in input:
-    # input = input.replace("\n", "")
-    # if input != "\n":
     erase_input_line()
     if is_input_tab(input):
         if input_is_private_message_request(input):
@@ -307,9 +304,10 @@ async def main():
             if socket_or_fd == 0:  # if we have an input from stdin
                 message = read_input()  # use readline to capture that input/msg
                 if message is not None and message is not False:
-                    send_channel_message([USERNAME, message])
                     if message == "quit":
                         running = False
+                    else:
+                        send_channel_message([USERNAME, message])
             if socket_or_fd == subscriber:
                 msg_data = await subscriber.recv()
                 msg_data = msg_data.decode().split(":")
