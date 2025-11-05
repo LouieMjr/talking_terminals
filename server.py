@@ -10,6 +10,8 @@ import zmq
 import zmq.asyncio
 from rich.console import Console
 
+from db_controller import db_insert_data
+
 context = zmq.asyncio.Context()
 console = Console()
 
@@ -238,7 +240,9 @@ async def start_tcp_server():
                 route.send(private_message_list)
         else:
             channel, client, message = msg_data
+            db_insert_data(client, message, channel)
             payload = f"{channel}:{client}:{message}"
+
             publish_message(payload)
             route.send(msgpack.packb(""))
 
