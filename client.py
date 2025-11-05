@@ -17,6 +17,7 @@ private_message_mode = False
 private_message_ids = []
 incoming_private_message = [False]
 client_list = None
+client_id = None
 running = True
 
 print("Connecting to server...")
@@ -257,13 +258,14 @@ def add_channels_and_subscribe(new_channels):
 
 
 async def response():
-    global private_message_mode, client_list
+    global private_message_mode, client_list, client_id
 
     response = await dealer.recv()
     response = msgpack.unpackb(response)
     if response != "":
         if isinstance(response, str):
-            add_channels_and_subscribe(response)
+            client_id, channel_subs = response.split(":")
+            add_channels_and_subscribe(channel_subs)
         else:
             if len(response) <= 1:
                 private_message_mode = False
