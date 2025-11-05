@@ -103,7 +103,8 @@ def route_clients_to_teams(client):
         channels = f"Team2 Team2{squad_ch}"
 
     channel_data["total_connected"] += 1
-    send_channel_subscriptions(channels)
+    data = f"{unique_id}:{channels}"
+    return data
 
 
 def parse(message):
@@ -126,7 +127,8 @@ async def receive():
 
 def client_joined_chat(msg_data):
     channel, _, name = msg_data
-    route_clients_to_teams(name)
+    data = route_clients_to_teams(name)
+    send_channel_subscriptions(data)
     rich.print(channel_data)
     payload = f"{channel}:{name} has joined."
     publish_message(payload)
@@ -219,7 +221,6 @@ async def start_tcp_server():
             route.send(msgpack.packb(""))
         elif "username" in msg_data:
             client_joined_chat(msg_data)
-            route.send(msgpack.packb(""))
 
         elif "True" in msg_data[0]:
             if len(msg_data) == 4:
