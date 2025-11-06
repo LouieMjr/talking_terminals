@@ -10,7 +10,7 @@ import zmq
 import zmq.asyncio
 from rich.console import Console
 
-from db_controller import db_insert_data
+from db_controller import db_insert_client, db_insert_data
 
 context = zmq.asyncio.Context()
 console = Console()
@@ -132,6 +132,8 @@ def client_joined_chat(msg_data):
     rich.print(channel_data)
     payload = f"{channel}:{name} has joined."
     publish_message(payload)
+    id = data.split(":")[0]
+    db_insert_client(name, id)
 
 
 def make_private_channel_for_clients(client_data):

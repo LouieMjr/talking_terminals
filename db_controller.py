@@ -3,6 +3,16 @@ from db_connect import db_connection
 db = db_connection()
 
 
+def db_insert_client(client, id):
+    if db is not None:
+        cursor = db.cursor()
+        columns = "INSERT INTO message_history (client, clientID)"
+        data = f" VALUES ('{client}', '{id}')"
+        query = columns + data
+        cursor.execute(query)
+        db.commit()
+
+
 def db_insert_data(client, message, channel):
     if db is not None:
         cursor = db.cursor()
