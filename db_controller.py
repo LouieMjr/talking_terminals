@@ -1,6 +1,6 @@
-from db_connect import db_connection
+from db_connect import cnx as db_cnx
 
-db = db_connection()
+cursor = db_cnx.cursor()
 
 
 def db_insert_client(client, id):
