@@ -10,6 +10,8 @@ import zmq
 import zmq.asyncio
 from rich.console import Console
 
+from db_controller import db_insert_client, db_insert_data
+
 context = zmq.asyncio.Context()
 console = Console()
 
@@ -101,7 +103,8 @@ def route_clients_to_teams(client):
         channels = f"Team2 Team2{squad_ch}"
 
     channel_data["total_connected"] += 1
-    send_channel_subscriptions(channels)
+    data = f"{unique_id}:{channels}"
+    return data
 
 
 def parse(message):
@@ -124,10 +127,13 @@ async def receive():
 
 def client_joined_chat(msg_data):
     channel, _, name = msg_data
-    route_clients_to_teams(name)
+    data = route_clients_to_teams(name)
+    send_channel_subscriptions(data)
     rich.print(channel_data)
     payload = f"{channel}:{name} has joined."
     publish_message(payload)
+    id = data.split(":")[0]
+    db_insert_client(name, id)
 
 
 def make_private_channel_for_clients(client_data):
@@ -217,7 +223,6 @@ async def start_tcp_server():
             route.send(msgpack.packb(""))
         elif "username" in msg_data:
             client_joined_chat(msg_data)
-            route.send(msgpack.packb(""))
 
         elif "True" in msg_data[0]:
             if len(msg_data) == 4:
@@ -238,7 +243,9 @@ async def start_tcp_server():
                 route.send(private_message_list)
         else:
             channel, client, message = msg_data
+            db_insert_data(client, message, channel)
             payload = f"{channel}:{client}:{message}"
+
             publish_message(payload)
             route.send(msgpack.packb(""))
 

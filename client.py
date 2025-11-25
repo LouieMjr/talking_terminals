@@ -17,6 +17,7 @@ private_message_mode = False
 private_message_ids = []
 incoming_private_message = [False]
 client_list = None
+client_id = None
 running = True
 
 print("Connecting to server...")
@@ -206,9 +207,6 @@ def read_input():
     global private_message_mode, channel
     input = sys.stdin.readline().replace("\n", "")
 
-    # if "\n" in input:
-    # input = input.replace("\n", "")
-    # if input != "\n":
     erase_input_line()
     if is_input_tab(input):
         if input_is_private_message_request(input):
@@ -260,13 +258,14 @@ def add_channels_and_subscribe(new_channels):
 
 
 async def response():
-    global private_message_mode, client_list
+    global private_message_mode, client_list, client_id
 
     response = await dealer.recv()
     response = msgpack.unpackb(response)
     if response != "":
         if isinstance(response, str):
-            add_channels_and_subscribe(response)
+            client_id, channel_subs = response.split(":")
+            add_channels_and_subscribe(channel_subs)
         else:
             if len(response) <= 1:
                 private_message_mode = False
@@ -307,9 +306,10 @@ async def main():
             if socket_or_fd == 0:  # if we have an input from stdin
                 message = read_input()  # use readline to capture that input/msg
                 if message is not None and message is not False:
-                    send_channel_message([USERNAME, message])
                     if message == "quit":
                         running = False
+                    else:
+                        send_channel_message([USERNAME, message])
             if socket_or_fd == subscriber:
                 msg_data = await subscriber.recv()
                 msg_data = msg_data.decode().split(":")
