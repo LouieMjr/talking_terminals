@@ -21,8 +21,8 @@ client_id = None
 running = True
 
 print("Connecting to server...")
-dealer = context.socket(zmq.REQ)
-dealer.connect("tcp://localhost:5556")
+request = context.socket(zmq.REQ)
+request.connect("tcp://localhost:5556")
 
 subscriber = context.socket(zmq.SUB)
 subscriber.connect("tcp://localhost:5557")
@@ -30,7 +30,7 @@ subscriber.subscribe(channel.encode())
 
 poller = zmq.asyncio.Poller()
 poller.register(subscriber, zmq.POLLIN)
-poller.register(dealer, zmq.POLLIN)
+poller.register(request, zmq.POLLIN)
 poller.register(0, zmq.POLLIN)  # registering stdin
 
 
@@ -75,7 +75,7 @@ def validate_input(input):
 
 
 def send_join_signal(name):
-    dealer.send(msgpack.packb(f"{channel}:username:{name}"))
+    request.send(msgpack.packb(f"{channel}:username:{name}"))
 
 
 def display_joiners_and_leavers(msg_data, username):
@@ -210,7 +210,7 @@ def read_input():
     erase_input_line()
     if is_input_tab(input):
         if input_is_private_message_request(input):
-            dealer.send(msgpack.packb(f"{private_message_mode}:{USERNAME}:''"))
+            request.send(msgpack.packb(f"{private_message_mode}:{USERNAME}:''"))
         else:
             if private_message_mode:
                 private_message_mode = False
@@ -243,11 +243,11 @@ def read_input():
 def send_channel_message(msg_data):
     username, message = msg_data
     if private_message_mode:
-        dealer.send(
+        request.send(
             msgpack.packb(f"{private_message_mode}:{channel}:{username}:{message}")
         )
     else:
-        dealer.send(msgpack.packb(f"{channel}:{username}:{message}"))
+        request.send(msgpack.packb(f"{channel}:{username}:{message}"))
 
 
 def add_channels_and_subscribe(new_channels):
@@ -260,7 +260,7 @@ def add_channels_and_subscribe(new_channels):
 async def response():
     global private_message_mode, client_list, client_id
 
-    response = await dealer.recv()
+    response = await request.recv()
     response = msgpack.unpackb(response)
     if response != "":
         if isinstance(response, str):
@@ -299,7 +299,7 @@ async def main():
         try:
             sockets = dict(await supervisor())
         except CancelledError:
-            await dealer.send(msgpack.packb(f"All:{USERNAME}:quit"))
+            await request.send(msgpack.packb(f"All:{USERNAME}:quit"))
             break
 
         for socket_or_fd, events in sockets.items():
@@ -337,10 +337,10 @@ async def main():
                             console.print(
                                 f"{text_color_based_on_channel(channel, True)}{message}"
                             )
-            if socket_or_fd == dealer:
+            if socket_or_fd == request:
                 await response()
 
-    dealer.close()
+    request.close()
     subscriber.close()
     context.term()
     print("Connection Closed.")

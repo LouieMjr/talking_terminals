@@ -24,15 +24,14 @@ if len(sys.argv) > 1:
     int(port)
 
 publisher = context.socket(zmq.PUB)
-route = context.socket(zmq.REP)
+reply = context.socket(zmq.REP)
 publisher.bind(f"tcp://localhost:{port1}")
-route.bind(f"tcp://localhost:{port}")
+reply.bind(f"tcp://localhost:{port}")
 
 channel_data = {
     "All": [],
     "Team1": [],
     "Team2": [],
-    # "Private_channels": [],
     "total_connected": 0,
 }
 
@@ -57,7 +56,7 @@ async def spin(msg):
 
 
 def send_channel_subscriptions(data):
-    route.send(msgpack.packb(data))
+    reply.send(msgpack.packb(data))
 
 
 def route_clients_to_squads(client_data, team):
@@ -120,7 +119,7 @@ async def supervisor():
 
 
 async def receive():
-    msg = await route.recv()
+    msg = await reply.recv()
     msg = msgpack.unpackb(msg)
     return parse(msg)
 
@@ -220,9 +219,10 @@ async def start_tcp_server():
             remove_client_from_all_lists(name)
             payload = f"All:{name} left the chat."
             publish_message(payload)
-            route.send(msgpack.packb(""))
+            reply.send(msgpack.packb(""))
         elif "username" in msg_data:
             client_joined_chat(msg_data)
+            reply.send(msgpack.packb(""))
 
         elif "True" in msg_data[0]:
             if len(msg_data) == 4:
@@ -232,7 +232,7 @@ async def start_tcp_server():
                 # bool_str, channel, requesting_client, id = msg_data
                 payload = prepare_to_make_topic_subscription(msg_data)
                 publish_message(payload)
-                route.send(msgpack.packb(""))
+                reply.send(msgpack.packb(""))
             else:
                 console.print(
                     "\n[bold purple]Private message requested.\nSending back list"
@@ -240,14 +240,14 @@ async def start_tcp_server():
                 # length of msg_data 2 at this point
                 # send requesting client list of avaialable clients to DM
                 private_message_list = msgpack.packb(channel_data["All"])
-                route.send(private_message_list)
+                reply.send(private_message_list)
         else:
             channel, client, message = msg_data
             db_insert_data(client, message, channel)
             payload = f"{channel}:{client}:{message}"
 
             publish_message(payload)
-            route.send(msgpack.packb(""))
+            reply.send(msgpack.packb(""))
 
 
 asyncio.run(start_tcp_server())
