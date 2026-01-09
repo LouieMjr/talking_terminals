@@ -251,7 +251,7 @@ def send_channel_message(msg_data):
 
 
 def add_channels_and_subscribe(new_channels):
-    for channel in new_channels.split(" "):
+    for channel in new_channels.split(":"):
         if channel not in channels:
             channels.append(channel)
             subscriber.subscribe(channel.encode())

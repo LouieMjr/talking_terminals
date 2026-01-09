@@ -91,19 +91,22 @@ def route_clients_to_teams(client):
     total_clients = channel_data["total_connected"]
     unique_id = generate_unique_random_number(unique_ids)
     client_data = {client: str(unique_id)}
+    print("how many times going into all")
     channel_data["All"].append(client_data)
 
     if total_clients % 2 == 0:
         squad_ch = route_clients_to_squads(client_data, channel_data["Team1"])
-        channels = f"Team1 Team1{squad_ch}"
+        channels = f"Team1:Team1{squad_ch}"
 
     else:
         squad_ch = route_clients_to_squads(client_data, channel_data["Team2"])
-        channels = f"Team2 Team2{squad_ch}"
+        channels = f"Team2:Team2{squad_ch}"
 
     channel_data["total_connected"] += 1
+    send_channel_subscriptions(channels)
     data = f"{unique_id}:{channels}"
-    return data
+    team_ch = channels.split(":")[0]
+    return [client, unique_id, team_ch, squad_ch, data]
 
 
 def parse(message):
@@ -227,7 +230,8 @@ async def start_tcp_server():
         elif "True" in msg_data[0]:
             if len(msg_data) == 4:
                 console.print(
-                    "\n[bold purple]Picked client to private message.\nSending back pm channel to clients"
+                    "\n[bold purple]Picked client to private message.\n"
+                    "Sending back pm channel to clients"
                 )
                 # bool_str, channel, requesting_client, id = msg_data
                 payload = prepare_to_make_topic_subscription(msg_data)
