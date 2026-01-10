@@ -10,7 +10,7 @@ import zmq
 import zmq.asyncio
 from rich.console import Console
 
-from db_controller import db_insert_client, db_insert_data
+from db_controller import db_find_client, db_insert_data, db_store_client_data
 
 context = zmq.asyncio.Context()
 console = Console()
@@ -129,13 +129,23 @@ async def receive():
 
 def client_joined_chat(msg_data):
     channel, _, name = msg_data
-    data = route_clients_to_teams(name)
-    send_channel_subscriptions(data)
-    rich.print(channel_data)
+    route_clients_to_teams(name)
+    client = db_find_client(name)
+    print(client, "what is this?")
+    if not client:
+        data = route_clients_to_teams(name)
+        topics_and_id = data.pop()
+        db_store_client_data(data)
+        send_channel_subscriptions(topics_and_id)
+        # send_channel_subscriptions()
+    # else:
+    rich.print(channel_data, "do we reach this?")
     payload = f"{channel}:{name} has joined."
     publish_message(payload)
-    id = data.split(":")[0]
-    db_insert_client(name, id)
+    # id = data.split(":")[0]
+    # print(id)
+    # if not online:
+    #     db_insert_client(name, id)
 
 
 def make_private_channel_for_clients(client_data):
@@ -159,11 +169,7 @@ def prepare_to_make_topic_subscription(msg_data):
                 client_data[requested_client] = requested_id
 
     topic_sub = make_private_channel_for_clients(client_data)
-
-    # if topic_sub not in channel_data["Private_channels"]:
-    # channel_data["Private_channels"].append(topic_sub)
     rich.print(channel_data)
-
     payload = f"All:{topic_sub}:{requesting_client}:{requested_client}"
     return payload
 
