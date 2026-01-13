@@ -308,8 +308,8 @@ async def main():
                 if message is not None and message is not False:
                     if message == "quit":
                         running = False
-                    else:
-                        send_channel_message([USERNAME, message])
+                    # else:
+                    send_channel_message([USERNAME, message])
             if socket_or_fd == subscriber:
                 msg_data = await subscriber.recv()
                 msg_data = msg_data.decode().split(":")
