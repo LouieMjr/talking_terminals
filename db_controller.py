@@ -34,7 +34,7 @@ def db_store_client_data(client_data):
 
 
 def db_insert_data(name, message, channel):
-    insert_columns = "INSERT INTO message_history (Client, Client_history, Channel)"
+    insert_columns = "INSERT INTO message_history (Client, Client_history, Channels)"
     data = f" VALUES ('{name}', '{message}', '{channel}');"
     query = insert_columns + data
     cursor.execute(query)
