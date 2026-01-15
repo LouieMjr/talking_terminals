@@ -104,9 +104,9 @@ def route_clients_to_teams(client):
 
     channel_data["total_connected"] += 1
     send_channel_subscriptions(channels)
-    data = f"{unique_id}:{channels}"
+    topics_and_id = f"{unique_id}:{channels}"
     team_ch = channels.split(":")[0]
-    return [client, unique_id, team_ch, squad_ch, data]
+    return [client, unique_id, team_ch, squad_ch, topics_and_id]
 
 
 def parse(message):
