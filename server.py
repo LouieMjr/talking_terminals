@@ -10,7 +10,13 @@ import zmq
 import zmq.asyncio
 from rich.console import Console
 
-from db_controller import db_find_client, db_insert_data, db_store_client_data
+from db_controller import (
+    db_does_client_exist,
+    db_get_client_data,
+    db_store_client_chat_history,
+    db_store_client_data,
+    db_update_online_status,
+)
 
 context = zmq.asyncio.Context()
 console = Console()
@@ -129,11 +135,10 @@ async def receive():
 
 def client_joined_chat(msg_data):
     channel, _, name = msg_data
-    route_clients_to_teams(name)
-    client = db_find_client(name)
-    print(client, "what is this?")
-    if not client:
-        data = route_clients_to_teams(name)
+    found = db_does_client_exist(name)
+
+    if not found:
+        data = route_clients_to_teams_and_create_channels(name)
         topics_and_id = data.pop()
         db_store_client_data(data)
         send_channel_subscriptions(topics_and_id)
