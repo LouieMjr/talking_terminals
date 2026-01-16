@@ -16,10 +16,9 @@ def db_does_client_exist(name):
 
 
 def db_store_client_data(client_data):
-    print(client_data)
     name, id, team, squad = client_data
-    columns = "INSERT INTO message_history (Client, ClientID, Team, Squad)"
-    data = f" VALUES ('{name}', '{id}', '{team}', '{squad}')"
+    columns = "INSERT INTO message_history (Client, ClientID)"
+    data = f" VALUES ('{name}', '{id}')"
     query = columns + data
     cursor.execute(query)
     db_cnx.commit()
