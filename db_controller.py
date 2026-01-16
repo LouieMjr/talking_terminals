@@ -3,23 +3,15 @@ from db_connect import cnx as db_cnx
 cursor = db_cnx.cursor()
 
 
-def db_find_client(name):
-    select = "SELECT Client, ClientID, Team, Squad "
+def db_does_client_exist(name):
+    select = "SELECT Client "
     table = "FROM message_history "
     where = f"WHERE Client='{name}'"
     query = select + table + where
     cursor.execute(query)
     user_data = cursor.fetchall()
-    print(user_data)
-    print(type(user_data))
     if user_data:
-        for data in user_data:
-            topics_and_id = []
-            for part in data:
-                if data[0] != part:
-                    topics_and_id.append(part)
-            return topics_and_id
-        # return user_data
+        return True
     return False
 
 
