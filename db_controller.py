@@ -54,3 +54,18 @@ def db_store_client_chat_history(name, message):
     db_cnx.commit()
 
 
+def db_update_online_status(name):
+    select = "SELECT Online "
+    table = "FROM message_history "
+    where = f"WHERE Client='{name}'"
+    select_query = select + table + where
+    cursor.execute(select_query)
+    data = cursor.fetchall()
+
+    online_status = data[0][0]
+    new_status = "T" if online_status == "F" else "F"
+    table = "UPDATE message_history "
+    update = f"SET Online = '{new_status}' "
+    update_query = table + update + where
+    cursor.execute(update_query)
+    db_cnx.commit()

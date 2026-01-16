@@ -241,6 +241,7 @@ async def start_tcp_server():
             remove_client_from_all_lists(name)
             payload = f"All:{name} left the chat."
             publish_message(payload)
+            db_update_online_status(name)
             reply.send(msgpack.packb(""))
         elif "username" in msg_data:
             client_joined_chat(msg_data)
