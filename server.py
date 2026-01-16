@@ -93,11 +93,15 @@ def generate_unique_random_number(unique_ids):
         return unique_id
 
 
-def route_clients_to_teams(client):
+def route_clients_to_teams_and_create_channels(client, client_data=None):
+    if not client_data:
+        unique_id = generate_unique_random_number(unique_ids)
+        client_data = {client: str(unique_id)}
+    else:
+        unique_id = client_data[client]
+
+    # rename to clients_online
     total_clients = channel_data["total_connected"]
-    unique_id = generate_unique_random_number(unique_ids)
-    client_data = {client: str(unique_id)}
-    print("how many times going into all")
     channel_data["All"].append(client_data)
 
     if total_clients % 2 == 0:
