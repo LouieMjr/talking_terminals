@@ -15,6 +15,19 @@ def db_does_client_exist(name):
     return False
 
 
+# rename to get client data
+def db_get_client_data(name):
+    select = "SELECT Client, ClientID "
+    table = "FROM message_history "
+    where = f"WHERE Client='{name}'"
+    query = select + table + where
+    cursor.execute(query)
+    user_data_list = cursor.fetchall()
+    user_data = user_data_list[0]
+    client_name_and_id = {user_data[0]: str(user_data[1])}
+    return client_name_and_id
+
+
 def db_store_client_data(client_data):
     name, id, team, squad = client_data
     columns = "INSERT INTO message_history (Client, ClientID)"

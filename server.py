@@ -143,7 +143,11 @@ def client_joined_chat(msg_data):
         db_store_client_data(data)
         send_channel_subscriptions(topics_and_id)
         # send_channel_subscriptions()
-    # else:
+    else:
+        name_and_id = db_get_client_data(name)
+        route_clients_to_teams_and_create_channels(name, name_and_id)
+
+    db_update_online_status(name)
     rich.print(channel_data, "do we reach this?")
     payload = f"{channel}:{name} has joined."
     publish_message(payload)
