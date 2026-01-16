@@ -43,3 +43,14 @@ def db_insert_data(name, message, channel):
     query = insert_columns + data
     cursor.execute(query)
     db_cnx.commit()
+
+
+def db_store_client_chat_history(name, message):
+    table = "UPDATE message_history "
+    update = f"SET Client_history = CONCAT_WS(':', Client_history, '{message}') "
+    where = f"WHERE Client='{name}'"
+    query = table + update + where
+    cursor.execute(query)
+    db_cnx.commit()
+
+

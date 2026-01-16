@@ -266,7 +266,7 @@ async def start_tcp_server():
                 reply.send(private_message_list)
         else:
             channel, client, message = msg_data
-            db_insert_data(client, message, channel)
+            db_store_client_chat_history(client, message)
             payload = f"{channel}:{client}:{message}"
 
             publish_message(payload)
